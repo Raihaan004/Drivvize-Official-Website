@@ -271,13 +271,13 @@ export const Navbar: React.FC = () => {
                   {SERVICE_ROUTES.map((service) => {
                     const isActive = activePath === service.href;
                     const IconComp =
-                      service.href === '/functional-safety-services'
+                      service.href === '/services#functional-safety'
                         ? ShieldCheck
-                        : service.href === '/cybersecurity-services'
+                        : service.href === '/services#cybersecurity'
                         ? Lock
                         : GraduationCap;
                     return (
-                      <a
+                      <Link
                         key={service.href}
                         href={service.href}
                         onClick={(e) => handleMobileNav(service, e)}
@@ -298,7 +298,7 @@ export const Navbar: React.FC = () => {
                             {service.description}
                           </span>
                         </span>
-                      </a>
+                      </Link>
                     );
                   })}
                 </div>

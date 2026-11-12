@@ -1,14 +1,21 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { ChevronDown, ShieldCheck, Lock, GraduationCap, ArrowUpRight } from 'lucide-react';
 import { SERVICE_ROUTES } from '@/constants/tokens';
 import { useNavigation } from './NavigationContext';
 
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
-  '/functional-safety-services': <ShieldCheck className="w-4 h-4 text-[#2563EB]" />,
-  '/cybersecurity-services': <Lock className="w-4 h-4 text-[#2563EB]" />,
-  '/trainings': <GraduationCap className="w-4 h-4 text-[#2563EB]" />,
+  '/services#functional-safety': <ShieldCheck className="w-4 h-4 text-[#2563EB]" />,
+  '/services#cybersecurity': <Lock className="w-4 h-4 text-[#2563EB]" />,
+  '/services#trainings': <GraduationCap className="w-4 h-4 text-[#2563EB]" />,
+};
+
+const SERVICE_ACTIVE_ICONS: Record<string, React.ReactNode> = {
+  '/services#functional-safety': <ShieldCheck className="w-4 h-4 text-white" />,
+  '/services#cybersecurity': <Lock className="w-4 h-4 text-white" />,
+  '/services#trainings': <GraduationCap className="w-4 h-4 text-white" />,
 };
 
 export const ServicesDropdown: React.FC = () => {
@@ -18,7 +25,9 @@ export const ServicesDropdown: React.FC = () => {
   const closeTimeoutRef = useRef<number | null>(null);
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
 
-  const isServiceActive = SERVICE_ROUTES.some((route) => route.href === activePath);
+  const isServiceActive =
+    activePath === '/services' ||
+    SERVICE_ROUTES.some((route) => route.href === activePath);
 
   const clearCloseTimer = () => {
     if (closeTimeoutRef.current !== null) {
@@ -129,7 +138,7 @@ export const ServicesDropdown: React.FC = () => {
             {SERVICE_ROUTES.map((service, idx) => {
               const isActive = activePath === service.href;
               return (
-                <a
+                <Link
                   key={service.href}
                   ref={idx === 0 ? firstLinkRef : undefined}
                   href={service.href}
@@ -151,11 +160,9 @@ export const ServicesDropdown: React.FC = () => {
                         : 'bg-[#F1F5F9] group-hover/item:bg-white border border-[#DCE3EA]'
                     }`}
                   >
-                    {isActive ? (
-                      <ShieldCheck className="w-4 h-4 text-white" />
-                    ) : (
-                      SERVICE_ICONS[service.href]
-                    )}
+                    {isActive
+                      ? SERVICE_ACTIVE_ICONS[service.href]
+                      : SERVICE_ICONS[service.href]}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -179,9 +186,23 @@ export const ServicesDropdown: React.FC = () => {
                   </div>
 
                   <ArrowUpRight className="w-3.5 h-3.5 text-[#315B7D] opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0 group-hover/item:text-[#2563EB] transition-all duration-200 mt-1 shrink-0" />
-                </a>
+                </Link>
               );
             })}
+          </div>
+          <div className="mt-2 pt-2 border-t border-[#F1F5F9]">
+            <Link
+              href="/services"
+              role="menuitem"
+              onClick={(e) => {
+                setIsOpen(false);
+                navigate({ label: 'All Services', href: '/services', isPage: true }, e);
+              }}
+              className="flex items-center justify-between px-3 py-2 rounded-[9px] text-[12.5px] font-semibold text-[#2563EB] hover:bg-[#EFF6FF] transition-colors"
+            >
+              <span>View All Services Overview</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
       </div>

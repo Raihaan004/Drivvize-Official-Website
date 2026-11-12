@@ -75,15 +75,15 @@ export const CTASection: React.FC = () => {
             </GradientButton>
 
             <GradientButton
-              href="/functional-safety-services"
+              href="/services"
               variant="secondary-glass-dark"
               size="lg"
               onClick={(e) =>
                 navigate(
                   {
                     label: 'Explore Our Services',
-                    href: '/functional-safety-services',
-                    sectionAnchor: 'capabilities',
+                    href: '/services',
+                    isPage: true,
                   },
                   e
                 )

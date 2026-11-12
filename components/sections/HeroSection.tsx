@@ -123,15 +123,15 @@ export const HeroSection: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-1">
               <GradientButton
-                href="/functional-safety-services"
+                href="/services"
                 variant="primary-gradient"
                 size="lg"
                 onClick={(e) =>
                   navigate(
                     {
                       label: 'Explore Our Services',
-                      href: '/functional-safety-services',
-                      sectionAnchor: 'capabilities',
+                      href: '/services',
+                      isPage: true,
                     },
                     e
                   )

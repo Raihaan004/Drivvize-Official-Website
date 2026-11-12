@@ -26,16 +26,28 @@ const FOOTER_COLUMNS: FooterColumnConfig[] = [
     colSpanClass: 'lg:col-span-3',
     links: [
       {
+        label: 'All Services',
+        href: '/services',
+        isPage: true,
+      },
+      {
         label: 'Functional Safety Services',
-        href: '/functional-safety-services',
-        sectionAnchor: 'capabilities',
+        href: '/services#functional-safety',
+        sectionAnchor: 'functional-safety',
+        isPage: true,
       },
       {
         label: 'Cybersecurity Services',
-        href: '/cybersecurity-services',
-        sectionAnchor: 'capabilities',
+        href: '/services#cybersecurity',
+        sectionAnchor: 'cybersecurity',
+        isPage: true,
       },
-      { label: 'Trainings', href: '/trainings', sectionAnchor: 'founders' },
+      {
+        label: 'Trainings',
+        href: '/services#trainings',
+        sectionAnchor: 'trainings',
+        isPage: true,
+      },
     ],
   },
   {
@@ -44,7 +56,7 @@ const FOOTER_COLUMNS: FooterColumnConfig[] = [
     colSpanClass: 'lg:col-span-2',
     links: [
       { label: 'Clients', href: '/clients', sectionAnchor: 'experience' },
-      { label: 'Case Studies', href: '/casestudies', sectionAnchor: 'systems' },
+      { label: 'Case Studies', href: '/casestudies', isPage: true },
       { label: 'Learn', href: '/learn', sectionAnchor: 'recognition' },
       { label: 'Scope Checker', href: '/scope-checker', isPage: true },
     ],

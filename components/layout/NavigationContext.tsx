@@ -20,6 +20,13 @@ interface NavigationContextValue {
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
 
+const REAL_PAGE_PATHS = new Set([
+  '/products',
+  '/scope-checker',
+  '/services',
+  '/casestudies',
+]);
+
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -28,8 +35,26 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({
   const [activePath, setActivePath] = useState<string>(pathname);
   const [routeNotice, setRouteNotice] = useState<NavRouteItem | null>(null);
   const pendingNavRef = useRef<NavRouteItem | null>(null);
+  const pendingPageSectionRef = useRef<{ path: string; anchor: string } | null>(null);
 
   useEffect(() => {
+    if (
+      pendingPageSectionRef.current &&
+      pathname === pendingPageSectionRef.current.path
+    ) {
+      const { anchor } = pendingPageSectionRef.current;
+      pendingPageSectionRef.current = null;
+      const frame = requestAnimationFrame(() => {
+        setActivePath(pathname);
+        setRouteNotice(null);
+        const targetEl = document.getElementById(anchor);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+
     if (pathname === '/' && pendingNavRef.current) {
       const pending = pendingNavRef.current;
       pendingNavRef.current = null;
@@ -84,20 +109,41 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({
 
       event.preventDefault();
 
-      if (item.isPage) {
+      const [rawPath, rawHash] = item.href.split('#');
+      const basePath = rawPath || '/';
+      const targetAnchor = item.sectionAnchor || rawHash;
+
+      if (item.isPage || REAL_PAGE_PATHS.has(basePath)) {
         pendingNavRef.current = null;
         setRouteNotice(null);
-        setActivePath(item.href);
-        if (pathname !== item.href) {
-          router.push(item.href);
-        } else {
+        setActivePath(basePath);
+
+        if (pathname === basePath) {
+          if (targetAnchor) {
+            try {
+              window.history.replaceState({}, '', `${basePath}#${targetAnchor}`);
+            } catch {
+              // ignore
+            }
+            const targetEl = document.getElementById(targetAnchor);
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              return;
+            }
+          }
           window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          if (targetAnchor) {
+            pendingPageSectionRef.current = { path: basePath, anchor: targetAnchor };
+          }
+          router.push(item.href);
         }
         return;
       }
 
       if (item.href === '/') {
         pendingNavRef.current = null;
+        pendingPageSectionRef.current = null;
         setRouteNotice(null);
         setActivePath('/');
         if (pathname !== '/') {

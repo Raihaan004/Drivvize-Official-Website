@@ -72,24 +72,27 @@ export interface NavRouteItem {
 export const SERVICE_ROUTES: NavRouteItem[] = [
   {
     label: 'Functional Safety Services',
-    href: '/functional-safety-services',
+    href: '/services#functional-safety',
     description: 'End-to-end ISO 26262 lifecycle engineering, ASIL A–D concepts, audits & safety management.',
     code: 'ISO 26262',
-    sectionAnchor: 'capabilities',
+    sectionAnchor: 'functional-safety',
+    isPage: true,
   },
   {
     label: 'Cybersecurity Services',
-    href: '/cybersecurity-services',
+    href: '/services#cybersecurity',
     description: 'ISO/SAE 21434 & EU-CRA compliance, TARA, CSMS architecture & cyber resilience.',
     code: 'ISO 21434',
-    sectionAnchor: 'capabilities',
+    sectionAnchor: 'cybersecurity',
+    isPage: true,
   },
   {
     label: 'Trainings',
-    href: '/trainings',
+    href: '/services#trainings',
     description: 'Practitioner-led technical training programs for automotive Systems, SW & HW engineering teams.',
     code: 'ACADEMY',
-    sectionAnchor: 'founders',
+    sectionAnchor: 'trainings',
+    isPage: true,
   },
 ];
 
@@ -97,7 +100,7 @@ export const PRIMARY_NAV_ROUTES: NavRouteItem[] = [
   { label: 'Products', href: '/products', isPage: true },
   // Services is rendered via ServicesDropdown right after Products
   { label: 'Clients', href: '/clients', sectionAnchor: 'experience' },
-  { label: 'Case Studies', href: '/casestudies', sectionAnchor: 'systems' },
+  { label: 'Case Studies', href: '/casestudies', isPage: true },
   { label: 'Learn', href: '/learn', sectionAnchor: 'recognition' },
   { label: 'Scope Checker', href: '/scope-checker', isPage: true },
 ];
