@@ -66,6 +66,7 @@ export interface NavRouteItem {
   description?: string;
   code?: string;
   sectionAnchor?: string;
+  isPage?: boolean;
 }
 
 export const SERVICE_ROUTES: NavRouteItem[] = [
@@ -98,5 +99,6 @@ export const PRIMARY_NAV_ROUTES: NavRouteItem[] = [
   { label: 'Clients', href: '/clients', sectionAnchor: 'experience' },
   { label: 'Case Studies', href: '/casestudies', sectionAnchor: 'systems' },
   { label: 'Learn', href: '/learn', sectionAnchor: 'recognition' },
+  { label: 'Scope Checker', href: '/scope-checker', isPage: true },
 ];
 

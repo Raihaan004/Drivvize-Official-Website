@@ -77,26 +77,45 @@ export const Navbar: React.FC = () => {
             {/* Services Dropdown */}
             <ServicesDropdown />
 
-            {/* Clients, Case Studies, Learn */}
+            {/* Clients, Case Studies, Learn, Scope Checker */}
             {postServicesRoutes.map((route) => {
               const isActive = activePath === route.href;
+              const linkClassName = `relative px-3 py-2 text-[14.5px] font-medium transition-colors duration-200 rounded-lg group whitespace-nowrap ${
+                isActive
+                  ? 'text-[#2563EB]'
+                  : 'text-[#0B2545] hover:text-[#2563EB]'
+              }`;
+              const underline = (
+                <span
+                  className={`absolute left-3 right-3 bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-[#2563EB] to-[#06B6D4] transition-transform duration-250 origin-left ${
+                    isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                  }`}
+                />
+              );
+
+              if (route.isPage) {
+                return (
+                  <Link
+                    key={route.href}
+                    href={route.href}
+                    onClick={(e) => navigate(route, e)}
+                    className={linkClassName}
+                  >
+                    <span>{route.label}</span>
+                    {underline}
+                  </Link>
+                );
+              }
+
               return (
                 <a
                   key={route.href}
                   href={route.href}
                   onClick={(e) => navigate(route, e)}
-                  className={`relative px-3 py-2 text-[14.5px] font-medium transition-colors duration-200 rounded-lg group ${
-                    isActive
-                      ? 'text-[#2563EB]'
-                      : 'text-[#0B2545] hover:text-[#2563EB]'
-                  }`}
+                  className={linkClassName}
                 >
                   <span>{route.label}</span>
-                  <span
-                    className={`absolute left-3 right-3 bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-[#2563EB] to-[#06B6D4] transition-transform duration-250 origin-left ${
-                      isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                    }`}
-                  />
+                  {underline}
                 </a>
               );
             })}
@@ -250,19 +269,35 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Clients, Case Studies, Learn */}
+            {/* Clients, Case Studies, Learn, Scope Checker */}
             {postServicesRoutes.map((route) => {
               const isActive = activePath === route.href;
+              const mobileLinkClassName = `flex items-center justify-between px-3.5 py-3 rounded-[10px] text-[15px] font-semibold transition-colors ${
+                isActive
+                  ? 'bg-[#F1F5F9] text-[#2563EB]'
+                  : 'text-[#0B2545] hover:bg-[#F1F5F9]'
+              }`;
+
+              if (route.isPage) {
+                return (
+                  <Link
+                    key={route.href}
+                    href={route.href}
+                    onClick={(e) => handleMobileNav(route, e)}
+                    className={mobileLinkClassName}
+                  >
+                    <span>{route.label}</span>
+                    <span className="text-[11px] font-mono text-[#315B7D]">{route.href}</span>
+                  </Link>
+                );
+              }
+
               return (
                 <a
                   key={route.href}
                   href={route.href}
                   onClick={(e) => handleMobileNav(route, e)}
-                  className={`flex items-center justify-between px-3.5 py-3 rounded-[10px] text-[15px] font-semibold transition-colors ${
-                    isActive
-                      ? 'bg-[#F1F5F9] text-[#2563EB]'
-                      : 'text-[#0B2545] hover:bg-[#F1F5F9]'
-                  }`}
+                  className={mobileLinkClassName}
                 >
                   <span>{route.label}</span>
                   <span className="text-[11px] font-mono text-[#315B7D]">{route.href}</span>
