@@ -3,18 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown, ArrowRight, ShieldCheck, Lock, GraduationCap } from 'lucide-react';
-import { DrivvizeLogo } from './DrivvizeLogo';
-import { ServicesDropdown } from './ServicesDropdown';
-import { GlassNavbar } from './ui/GlassNavbar';
-import { GradientButton } from './ui/GradientButton';
+import { DrivvizeLogo } from '@/components/ui/DrivvizeLogo';
+import { GlassNavbar } from '@/components/ui/GlassNavbar';
+import { GradientButton } from '@/components/ui/GradientButton';
 import { PRIMARY_NAV_ROUTES, SERVICE_ROUTES, NavRouteItem } from '@/constants/tokens';
+import { ServicesDropdown } from './ServicesDropdown';
+import { useNavigation } from './NavigationContext';
 
-interface NavbarProps {
-  activePath: string;
-  onNavigate: (item: NavRouteItem, event: React.MouseEvent<HTMLAnchorElement>) => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({ activePath, onNavigate }) => {
+export const Navbar: React.FC = () => {
+  const { activePath, navigate } = useNavigation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(true);
 
@@ -34,7 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activePath, onNavigate }) => {
 
   const handleMobileNav = (item: NavRouteItem, e: React.MouseEvent<HTMLAnchorElement>) => {
     setMobileMenuOpen(false);
-    onNavigate(item, e);
+    navigate(item, e);
   };
 
   return (
@@ -45,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activePath, onNavigate }) => {
           <Link
             href="/"
             onClick={(e) =>
-              onNavigate({ label: 'Home', href: '/', sectionAnchor: 'top' }, e)
+              navigate({ label: 'Home', href: '/', sectionAnchor: 'top' }, e)
             }
             className="focus:outline-none rounded-lg"
           >
@@ -60,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activePath, onNavigate }) => {
             {/* Products */}
             <a
               href={productsRoute.href}
-              onClick={(e) => onNavigate(productsRoute, e)}
+              onClick={(e) => navigate(productsRoute, e)}
               className={`relative px-3 py-2 text-[14.5px] font-medium transition-colors duration-200 rounded-lg group ${
                 activePath === productsRoute.href
                   ? 'text-[#2563EB]'
@@ -78,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activePath, onNavigate }) => {
             </a>
 
             {/* Services Dropdown */}
-            <ServicesDropdown activePath={activePath} onNavigate={onNavigate} />
+            <ServicesDropdown />
 
             {/* Clients, Case Studies, Learn */}
             {postServicesRoutes.map((route) => {
@@ -87,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activePath, onNavigate }) => {
                 <a
                   key={route.href}
                   href={route.href}
-                  onClick={(e) => onNavigate(route, e)}
+                  onClick={(e) => navigate(route, e)}
                   className={`relative px-3 py-2 text-[14.5px] font-medium transition-colors duration-200 rounded-lg group ${
                     isActive
                       ? 'text-[#2563EB]'
@@ -112,7 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activePath, onNavigate }) => {
               variant="primary-gradient"
               size="md"
               onClick={(e) =>
-                onNavigate(
+                navigate(
                   { label: 'Contact Us', href: '/contact', sectionAnchor: 'cta-contact' },
                   e
                 )
@@ -298,3 +295,4 @@ export const Navbar: React.FC<NavbarProps> = ({ activePath, onNavigate }) => {
     </>
   );
 };
+

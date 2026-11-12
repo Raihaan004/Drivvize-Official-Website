@@ -2,12 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ShieldCheck, Lock, GraduationCap, ArrowUpRight } from 'lucide-react';
-import { SERVICE_ROUTES, NavRouteItem } from '@/constants/tokens';
-
-interface ServicesDropdownProps {
-  activePath: string;
-  onNavigate: (item: NavRouteItem, event: React.MouseEvent<HTMLAnchorElement>) => void;
-}
+import { SERVICE_ROUTES } from '@/constants/tokens';
+import { useNavigation } from './NavigationContext';
 
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
   '/functional-safety-services': <ShieldCheck className="w-4 h-4 text-[#2563EB]" />,
@@ -15,10 +11,8 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
   '/trainings': <GraduationCap className="w-4 h-4 text-[#2563EB]" />,
 };
 
-export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
-  activePath,
-  onNavigate,
-}) => {
+export const ServicesDropdown: React.FC = () => {
+  const { activePath, navigate } = useNavigation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const closeTimeoutRef = useRef<number | null>(null);
@@ -99,7 +93,6 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
             isOpen ? 'rotate-180 text-[#2563EB]' : 'text-[#315B7D] group-hover:text-[#2563EB]'
           }`}
         />
-        {/* Animated bottom underline */}
         <span
           className={`absolute left-3 right-3 bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-[#2563EB] to-[#06B6D4] transition-transform duration-250 origin-left ${
             isServiceActive || isOpen ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
@@ -118,7 +111,6 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
         }`}
       >
         <div className="relative bg-white/95 backdrop-blur-xl border border-[#DCE3EA] rounded-[14px] p-2.5 shadow-[0_22px_50px_-12px_rgba(11,37,69,0.18)] overflow-hidden">
-          {/* Subtle top gradient hairline */}
           <div
             aria-hidden="true"
             className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-[#2563EB] via-[#06B6D4] to-[#0D9488]"
@@ -144,7 +136,7 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
                   role="menuitem"
                   onClick={(e) => {
                     setIsOpen(false);
-                    onNavigate(service, e);
+                    navigate(service, e);
                   }}
                   className={`group/item flex items-start gap-3.5 p-3 rounded-[10px] transition-all duration-200 ${
                     isActive

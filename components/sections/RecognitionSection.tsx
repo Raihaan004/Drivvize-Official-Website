@@ -9,7 +9,8 @@ import {
   Image as ImageIcon,
   Eye,
 } from 'lucide-react';
-import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { SectionContainer } from '@/components/ui/SectionContainer';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 interface ConferenceRecognitionItem {
   id: string;
@@ -65,42 +66,21 @@ const CONFERENCE_ITEMS: ConferenceRecognitionItem[] = [
 ];
 
 export const RecognitionSection: React.FC = () => {
-  const { ref, isVisible } = useScrollReveal<HTMLDivElement>();
-
   return (
     <section
       id="recognition"
       aria-labelledby="recognition-heading"
       className="relative bg-white py-16 sm:py-20 lg:py-24 border-b border-[#DCE3EA]"
     >
-      <div
-        ref={ref}
-        className={`max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 reveal-hidden ${
-          isVisible ? 'reveal-visible' : ''
-        }`}
-      >
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 sm:mb-12">
-          <div>
-            <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded-full bg-[#F1F5F9] border border-[#DCE3EA]">
-              <span className="w-2 h-2 rounded-full bg-[#FACC15]" />
-              <span className="text-[11.5px] font-bold tracking-[0.11em] uppercase text-[#315B7D]">
-                THOUGHT LEADERSHIP &amp; CONFERENCES
-              </span>
-            </div>
-            <h2
-              id="recognition-heading"
-              className="text-[32px] sm:text-[40px] lg:text-[46px] font-bold text-[#0B2545] leading-[1.12] tracking-[-0.022em]"
-            >
-              Industry Recognition
-            </h2>
-          </div>
-          <p className="text-[15px] sm:text-[16px] text-[#315B7D] max-w-[460px] leading-[1.6]">
-            Contributing to the global functional safety and automotive cybersecurity
-            community through technical publications, media partnerships, and keynote
-            sessions.
-          </p>
-        </div>
+      <SectionContainer>
+        <SectionHeader
+          headingId="recognition-heading"
+          eyebrow="THOUGHT LEADERSHIP & CONFERENCES"
+          eyebrowDotClass="bg-[#FACC15]"
+          eyebrowBadgeClass="bg-[#F1F5F9] border border-[#DCE3EA]"
+          title="Industry Recognition"
+          description="Contributing to the global functional safety and automotive cybersecurity community through technical publications, media partnerships, and keynote sessions."
+        />
 
         {/* Achievement 01 — Featured Card: Functional Safety First */}
         <div className="mb-8 rounded-[16px] bg-gradient-corporate-blue text-white border border-[#315B7D]/50 shadow-[0_20px_48px_-12px_rgba(11,37,69,0.28)] overflow-hidden relative">
@@ -109,7 +89,6 @@ export const RecognitionSection: React.FC = () => {
             className="absolute inset-0 engineering-grid-dark opacity-60 pointer-events-none"
           />
           <div className="relative z-10 p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left Content */}
             <div className="lg:col-span-7 space-y-4">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#2563EB] to-[#06B6D4] text-white text-[11px] font-bold tracking-[0.08em] uppercase">
@@ -151,12 +130,10 @@ export const RecognitionSection: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Highlight / Publication Placeholder Frame */}
             <div className="lg:col-span-5">
               <div className="rounded-[13px] bg-white/8 backdrop-blur-md border border-white/15 p-5 sm:p-6 flex flex-col justify-between gap-5">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
                   <div className="flex items-center gap-2.5">
-                    {/* Logo Placeholder Slot */}
                     <div className="px-2.5 py-1 rounded bg-white/10 border border-dashed border-white/30 text-[10px] font-mono uppercase tracking-wider text-[#DCE3EA]">
                       LOGO PLACEHOLDER
                     </div>
@@ -204,21 +181,17 @@ export const RecognitionSection: React.FC = () => {
                 key={item.id}
                 className="group relative rounded-[14px] bg-white border border-[#DCE3EA] hover:border-[#06B6D4] overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 shadow-[0_2px_10px_-3px_rgba(11,37,69,0.04)] hover:shadow-[0_18px_36px_-12px_rgba(37,99,235,0.12)] flex flex-col justify-between"
               >
-                {/* Top subtle gradient highlight bar */}
                 <div
                   aria-hidden="true"
                   className="h-[3px] w-full bg-gradient-to-r from-[#0B2545] via-[#2563EB] to-[#06B6D4] opacity-75 group-hover:opacity-100 transition-opacity"
                 />
 
-                {/* Dedicated Space for Real Event Photograph + Conference Logo Placeholder */}
                 <div className="relative h-[156px] bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0]/65 border-b border-[#DCE3EA] p-4 flex flex-col justify-between overflow-hidden">
-                  {/* Subtle blueprint lines inside photo placeholder */}
                   <div
                     aria-hidden="true"
                     className="absolute inset-0 engineering-grid-light opacity-70 pointer-events-none"
                   />
 
-                  {/* Top Row inside Photo Frame: Conference Logo Placeholder + Index */}
                   <div className="relative z-10 flex items-center justify-between gap-2">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-white/90 border border-dashed border-[#315B7D]/45 text-[10px] font-mono font-semibold text-[#315B7D] tracking-wider uppercase">
                       <span>CONF. LOGO PLACEHOLDER</span>
@@ -228,7 +201,6 @@ export const RecognitionSection: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Center Replaceable Event Photograph Frame Marker */}
                   <div className="relative z-10 flex items-center justify-center my-auto">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 backdrop-blur-xs border border-[#DCE3EA] text-[#315B7D] group-hover:border-[#2563EB]/50 group-hover:text-[#0B2545] transition-colors">
                       <ImageIcon className="w-3.5 h-3.5 text-[#2563EB]" />
@@ -238,7 +210,6 @@ export const RecognitionSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Bottom Row inside Photo Frame: Role Badge & Year/Region */}
                   <div className="relative z-10 flex items-center justify-between gap-2">
                     <span
                       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-[0.06em] uppercase ${
@@ -261,7 +232,6 @@ export const RecognitionSection: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Card Body */}
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[18.5px] font-bold text-[#0B2545] group-hover:text-[#2563EB] leading-[1.3] transition-colors">
@@ -283,7 +253,7 @@ export const RecognitionSection: React.FC = () => {
             );
           })}
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 };

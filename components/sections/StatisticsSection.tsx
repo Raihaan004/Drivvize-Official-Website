@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Globe2, Shield, CheckCircle2 } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { AmbientGlow } from './ui/AmbientGlow';
-import { TechnicalGrid } from './ui/TechnicalGrid';
+import { AmbientGlow } from '@/components/ui/AmbientGlow';
+import { TechnicalGrid } from '@/components/ui/TechnicalGrid';
+import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 interface StatMetric {
   targetValue: number;
@@ -56,61 +58,6 @@ const STATISTICS: StatMetric[] = [
   },
 ];
 
-interface AnimatedCounterProps {
-  target: number;
-  suffix: string;
-  start: boolean;
-  reducedMotion: boolean;
-  highlightYellow?: boolean;
-}
-
-const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
-  target,
-  suffix,
-  start,
-  reducedMotion,
-  highlightYellow = false,
-}) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!start || reducedMotion) return;
-
-    let animationFrameId: number;
-    const duration = 1250;
-    const startTime = performance.now();
-
-    const step = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // Cubic ease-out
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const currentVal = Math.round(eased * target);
-      setCount(currentVal);
-
-      if (progress < 1) {
-        animationFrameId = requestAnimationFrame(step);
-      } else {
-        setCount(target);
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [start, target, reducedMotion]);
-
-  const displayValue = reducedMotion ? target : count;
-
-  return (
-    <span className="inline-flex items-baseline">
-      <span>{displayValue}</span>
-      <span className={`ml-0.5 ${highlightYellow ? 'text-[#FACC15]' : 'text-[#06B6D4]'}`}>
-        {suffix}
-      </span>
-    </span>
-  );
-};
-
 export const StatisticsSection: React.FC = () => {
   const { ref, isVisible, reducedMotion } = useScrollReveal<HTMLDivElement>({
     threshold: 0.2,
@@ -123,7 +70,6 @@ export const StatisticsSection: React.FC = () => {
       aria-labelledby="statistics-heading"
       className="relative bg-gradient-premium-dark text-white py-16 sm:py-20 lg:py-24 border-b border-[#315B7D]/45 overflow-hidden"
     >
-      {/* Blue & Cyan Ambient Gradients */}
       <AmbientGlow
         tone="blue"
         position="top-left"
@@ -136,7 +82,6 @@ export const StatisticsSection: React.FC = () => {
         sizeClass="w-[500px] h-[500px]"
       />
 
-      {/* Subtle Technical Grid */}
       <TechnicalGrid theme="dark" showNodes opacityClass="opacity-60" />
 
       <div
@@ -145,38 +90,29 @@ export const StatisticsSection: React.FC = () => {
           isVisible ? 'reveal-visible' : ''
         }`}
       >
-        {/* Header Row */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
-          <div>
-            <div className="inline-flex items-center gap-2 mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#FACC15]" />
-              <span className="text-[12px] font-bold tracking-[0.11em] uppercase text-[#06B6D4]">
-                PROVEN TRACK RECORD
-              </span>
+        <SectionHeader
+          headingId="statistics-heading"
+          theme="dark"
+          eyebrow="PROVEN TRACK RECORD"
+          eyebrowDotClass="bg-[#FACC15]"
+          title="Engineering Experience That Matters"
+          className="mb-12"
+          rightSlot={
+            <div className="glass-panel-dark px-5 py-3.5 flex items-center gap-3.5 self-start lg:self-auto">
+              <div className="w-9 h-9 rounded-[9px] bg-gradient-to-br from-[#2563EB] to-[#06B6D4] flex items-center justify-center shrink-0">
+                <Globe2 className="w-4 h-4 text-[#FACC15]" />
+              </div>
+              <div>
+                <span className="block text-[10.5px] font-bold tracking-[0.1em] uppercase text-[#06B6D4]">
+                  CROSS-SECTOR DOMAIN COVERAGE
+                </span>
+                <p className="text-[14.5px] sm:text-[15.5px] font-bold text-white">
+                  Automotive, Agriculture and Marine Industry
+                </p>
+              </div>
             </div>
-            <h2
-              id="statistics-heading"
-              className="text-[32px] sm:text-[40px] lg:text-[46px] font-bold text-white leading-[1.12] tracking-[-0.022em]"
-            >
-              Engineering Experience That Matters
-            </h2>
-          </div>
-
-          {/* Supporting Statement Glass Highlight Panel */}
-          <div className="glass-panel-dark px-5 py-3.5 flex items-center gap-3.5 self-start lg:self-auto">
-            <div className="w-9 h-9 rounded-[9px] bg-gradient-to-br from-[#2563EB] to-[#06B6D4] flex items-center justify-center shrink-0">
-              <Globe2 className="w-4 h-4 text-[#FACC15]" />
-            </div>
-            <div>
-              <span className="block text-[10.5px] font-bold tracking-[0.1em] uppercase text-[#06B6D4]">
-                CROSS-SECTOR DOMAIN COVERAGE
-              </span>
-              <p className="text-[14.5px] sm:text-[15.5px] font-bold text-white">
-                Automotive, Agriculture and Marine Industry
-              </p>
-            </div>
-          </div>
-        </div>
+          }
+        />
 
         {/* Structured Statistics Grid on Deep Navy */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 bg-[#0B2545]/75 backdrop-blur-md rounded-[16px] border border-white/14 shadow-[0_24px_52px_-16px_rgba(6,21,41,0.55)] overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-white/12">
@@ -207,7 +143,6 @@ export const StatisticsSection: React.FC = () => {
                     />
                   </div>
 
-                  {/* Large Bold Numerical Typography in White with Safety Yellow / Cyan accents */}
                   <div
                     style={{ fontFamily: 'var(--font-heading)' }}
                     className="text-[44px] sm:text-[52px] lg:text-[56px] font-extrabold text-white leading-none tracking-[-0.03em] my-2"
@@ -217,11 +152,12 @@ export const StatisticsSection: React.FC = () => {
                       suffix={stat.suffix}
                       start={isVisible}
                       reducedMotion={reducedMotion}
-                      highlightYellow={stat.highlightYellow}
+                      suffixClassName={
+                        stat.highlightYellow ? 'text-[#FACC15]' : 'text-[#06B6D4]'
+                      }
                     />
                   </div>
 
-                  {/* Exact Metric Label */}
                   <h3 className="text-[18px] sm:text-[19px] font-bold text-white group-hover:text-[#06B6D4] transition-colors mt-3 leading-snug">
                     {stat.label}
                   </h3>
