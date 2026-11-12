@@ -94,7 +94,7 @@ export const SERVICE_ROUTES: NavRouteItem[] = [
 ];
 
 export const PRIMARY_NAV_ROUTES: NavRouteItem[] = [
-  { label: 'Products', href: '/products', sectionAnchor: 'systems' },
+  { label: 'Products', href: '/products', isPage: true },
   // Services is rendered via ServicesDropdown right after Products
   { label: 'Clients', href: '/clients', sectionAnchor: 'experience' },
   { label: 'Case Studies', href: '/casestudies', sectionAnchor: 'systems' },

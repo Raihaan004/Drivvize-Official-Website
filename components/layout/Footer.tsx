@@ -18,7 +18,7 @@ const FOOTER_COLUMNS: FooterColumnConfig[] = [
     heading: 'Products',
     dotColorClass: 'bg-[#06B6D4]',
     colSpanClass: 'lg:col-span-2',
-    links: [{ label: 'Products', href: '/products', sectionAnchor: 'systems' }],
+    links: [{ label: 'Products', href: '/products', isPage: true }],
   },
   {
     heading: 'Services',

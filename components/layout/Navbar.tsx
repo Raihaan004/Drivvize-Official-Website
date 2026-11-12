@@ -55,24 +55,45 @@ export const Navbar: React.FC = () => {
             className="hidden lg:flex items-center gap-1 xl:gap-2"
           >
             {/* Products */}
-            <a
-              href={productsRoute.href}
-              onClick={(e) => navigate(productsRoute, e)}
-              className={`relative px-3 py-2 text-[14.5px] font-medium transition-colors duration-200 rounded-lg group ${
-                activePath === productsRoute.href
-                  ? 'text-[#2563EB]'
-                  : 'text-[#0B2545] hover:text-[#2563EB]'
-              }`}
-            >
-              <span>{productsRoute.label}</span>
-              <span
-                className={`absolute left-3 right-3 bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-[#2563EB] to-[#06B6D4] transition-transform duration-250 origin-left ${
+            {productsRoute.isPage ? (
+              <Link
+                href={productsRoute.href}
+                onClick={(e) => navigate(productsRoute, e)}
+                className={`relative px-3 py-2 text-[14.5px] font-medium transition-colors duration-200 rounded-lg group whitespace-nowrap ${
                   activePath === productsRoute.href
-                    ? 'scale-x-100'
-                    : 'scale-x-0 group-hover:scale-x-100'
+                    ? 'text-[#2563EB]'
+                    : 'text-[#0B2545] hover:text-[#2563EB]'
                 }`}
-              />
-            </a>
+              >
+                <span>{productsRoute.label}</span>
+                <span
+                  className={`absolute left-3 right-3 bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-[#2563EB] to-[#06B6D4] transition-transform duration-250 origin-left ${
+                    activePath === productsRoute.href
+                      ? 'scale-x-100'
+                      : 'scale-x-0 group-hover:scale-x-100'
+                  }`}
+                />
+              </Link>
+            ) : (
+              <a
+                href={productsRoute.href}
+                onClick={(e) => navigate(productsRoute, e)}
+                className={`relative px-3 py-2 text-[14.5px] font-medium transition-colors duration-200 rounded-lg group whitespace-nowrap ${
+                  activePath === productsRoute.href
+                    ? 'text-[#2563EB]'
+                    : 'text-[#0B2545] hover:text-[#2563EB]'
+                }`}
+              >
+                <span>{productsRoute.label}</span>
+                <span
+                  className={`absolute left-3 right-3 bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-[#2563EB] to-[#06B6D4] transition-transform duration-250 origin-left ${
+                    activePath === productsRoute.href
+                      ? 'scale-x-100'
+                      : 'scale-x-0 group-hover:scale-x-100'
+                  }`}
+                />
+              </a>
+            )}
 
             {/* Services Dropdown */}
             <ServicesDropdown />
@@ -198,18 +219,33 @@ export const Navbar: React.FC = () => {
           {/* Drawer Links */}
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-1.5">
             {/* Products */}
-            <a
-              href={productsRoute.href}
-              onClick={(e) => handleMobileNav(productsRoute, e)}
-              className={`flex items-center justify-between px-3.5 py-3 rounded-[10px] text-[15px] font-semibold transition-colors ${
-                activePath === productsRoute.href
-                  ? 'bg-[#F1F5F9] text-[#2563EB]'
-                  : 'text-[#0B2545] hover:bg-[#F1F5F9]'
-              }`}
-            >
-              <span>{productsRoute.label}</span>
-              <span className="text-[11px] font-mono text-[#315B7D]">{productsRoute.href}</span>
-            </a>
+            {productsRoute.isPage ? (
+              <Link
+                href={productsRoute.href}
+                onClick={(e) => handleMobileNav(productsRoute, e)}
+                className={`flex items-center justify-between px-3.5 py-3 rounded-[10px] text-[15px] font-semibold transition-colors ${
+                  activePath === productsRoute.href
+                    ? 'bg-[#F1F5F9] text-[#2563EB]'
+                    : 'text-[#0B2545] hover:bg-[#F1F5F9]'
+                }`}
+              >
+                <span>{productsRoute.label}</span>
+                <span className="text-[11px] font-mono text-[#315B7D]">{productsRoute.href}</span>
+              </Link>
+            ) : (
+              <a
+                href={productsRoute.href}
+                onClick={(e) => handleMobileNav(productsRoute, e)}
+                className={`flex items-center justify-between px-3.5 py-3 rounded-[10px] text-[15px] font-semibold transition-colors ${
+                  activePath === productsRoute.href
+                    ? 'bg-[#F1F5F9] text-[#2563EB]'
+                    : 'text-[#0B2545] hover:bg-[#F1F5F9]'
+                }`}
+              >
+                <span>{productsRoute.label}</span>
+                <span className="text-[11px] font-mono text-[#315B7D]">{productsRoute.href}</span>
+              </a>
+            )}
 
             {/* Expandable Services Submenu */}
             <div className="rounded-[12px] border border-[#DCE3EA] bg-[#F1F5F9]/55 overflow-hidden">
