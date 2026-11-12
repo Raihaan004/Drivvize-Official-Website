@@ -433,7 +433,7 @@ export const CaseStudiesClient: React.FC = () => {
                   {
                     label: 'Talk to Our Experts',
                     href: '/contact',
-                    sectionAnchor: 'cta-contact',
+                    isPage: true,
                   },
                   e
                 )

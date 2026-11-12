@@ -150,7 +150,7 @@ export const Navbar: React.FC = () => {
               size="md"
               onClick={(e) =>
                 navigate(
-                  { label: 'Contact Us', href: '/contact', sectionAnchor: 'cta-contact' },
+                  { label: 'Contact Us', href: '/contact', isPage: true },
                   e
                 )
               }
@@ -348,7 +348,7 @@ export const Navbar: React.FC = () => {
               href="/contact"
               onClick={(e) =>
                 handleMobileNav(
-                  { label: 'Contact Us', href: '/contact', sectionAnchor: 'cta-contact' },
+                  { label: 'Contact Us', href: '/contact', isPage: true },
                   e
                 )
               }

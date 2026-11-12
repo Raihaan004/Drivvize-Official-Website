@@ -25,6 +25,7 @@ const REAL_PAGE_PATHS = new Set([
   '/scope-checker',
   '/services',
   '/casestudies',
+  '/contact',
 ]);
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({

@@ -64,7 +64,7 @@ export const CTASection: React.FC = () => {
               size="lg"
               onClick={(e) =>
                 navigate(
-                  { label: 'Talk to Our Experts', href: '/contact', sectionAnchor: 'cta-contact' },
+                  { label: 'Talk to Our Experts', href: '/contact', isPage: true },
                   e
                 )
               }

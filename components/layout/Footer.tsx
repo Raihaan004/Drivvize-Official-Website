@@ -66,7 +66,7 @@ const FOOTER_COLUMNS: FooterColumnConfig[] = [
     dotColorClass: 'bg-[#FACC15]',
     colSpanClass: 'lg:col-span-1',
     links: [
-      { label: 'Contact Us', href: '/contact', sectionAnchor: 'cta-contact' },
+      { label: 'Contact Us', href: '/contact', isPage: true },
     ],
   },
 ];

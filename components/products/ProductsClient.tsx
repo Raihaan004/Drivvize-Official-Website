@@ -280,7 +280,7 @@ export const ProductsClient: React.FC = () => {
                     {
                       label: 'Contact Us',
                       href: '/contact',
-                      sectionAnchor: 'cta-contact',
+                      isPage: true,
                     },
                     e
                   )
@@ -434,7 +434,7 @@ export const ProductsClient: React.FC = () => {
                             {
                               label: `Inquire: ${edition.name}`,
                               href: '/contact',
-                              sectionAnchor: 'cta-contact',
+                              isPage: true,
                             },
                             e
                           );
