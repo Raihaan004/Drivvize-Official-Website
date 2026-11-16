@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { NAV, goTo } from './data';
+import { usePathname } from 'next/navigation';
+import { NAV } from './data';
 
 export default function Nav() {
+  const pathname = usePathname();
   const [solid, setSolid] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -15,93 +17,151 @@ export default function Nav() {
     return () => window.removeEventListener('scroll', on);
   }, []);
 
-  const go = (e: React.MouseEvent, anchor: string) => {
-    e.preventDefault();
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  const handleNavClick = (e: React.MouseEvent, item: { path: string; anchor?: string }) => {
     setOpen(false);
-    goTo(anchor);
+    // If the item specifically has an anchor and we are currently on the homepage, scroll smoothly
+    if (item.anchor && pathname === '/') {
+      const el = document.getElementById(item.anchor);
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    // Otherwise, allow standard Next.js Link page navigation to item.path
   };
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    setOpen(false);
+    if (pathname === '/') {
+      const el = document.getElementById('top');
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
+  const handleContactClick = (e: React.MouseEvent) => {
+    setOpen(false);
+    if (pathname === '/') {
+      const el = document.getElementById('contact');
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   const light = !solid && !open;
   const text = light ? 'text-white/85 hover:text-white' : 'text-ink/70 hover:text-ink';
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-        light ? '' : 'bg-white/90 shadow-[0_1px_0_0_rgba(10,16,24,0.06)] backdrop-blur-xl'
+        light ? '' : 'bg-white/95 shadow-[0_1px_0_0_rgba(10,16,24,0.06)] backdrop-blur-xl'
       }`}
     >
-      <div className="mx-auto flex h-20 max-w-[1320px] items-center justify-between px-6 lg:px-10">
+      <div className="mx-auto flex h-16 sm:h-20 max-w-[1320px] items-center justify-between px-5 sm:px-6 lg:px-10">
         <Link
           href="/"
-          onClick={(e) => go(e, 'top')}
+          onClick={handleLogoClick}
           aria-label="Drivvize home"
-          className="inline-flex items-center justify-center bg-white px-3.5 py-1.5 rounded-[12px] border border-line shadow-xs hover:shadow-sm transition-all focus:outline-none"
+          className="inline-flex items-center justify-center bg-white px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-[12px] border border-line shadow-xs hover:shadow-sm transition-all focus:outline-none"
         >
           <img
             src="/drivvize-logo.png"
             alt="Drivvize — Drive. Vision. Realize."
-            className="h-8 sm:h-9 w-auto object-contain"
+            className="h-7 sm:h-9 w-auto object-contain"
           />
         </Link>
 
-        <nav className="hidden items-center gap-9 lg:flex" aria-label="Primary">
-          {NAV.map((item) => (
-            <div key={item.label} className="group relative">
-              <a
-                href={item.path}
-                onClick={(e) => go(e, item.anchor)}
-                className={`relative flex items-center gap-1.5 py-2 text-[14px] font-semibold transition-colors ${text}`}
-              >
-                {item.label}
+        <nav className="hidden items-center gap-8 xl:gap-9 lg:flex" aria-label="Primary">
+          {NAV.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <div key={item.label} className="group relative">
+                <Link
+                  href={item.path}
+                  onClick={(e) => handleNavClick(e, item)}
+                  className={`relative flex items-center gap-1.5 py-2 text-[14px] font-semibold transition-colors ${
+                    isActive
+                      ? light
+                        ? 'text-signal font-bold'
+                        : 'text-brand font-bold'
+                      : text
+                  }`}
+                >
+                  {item.label}
+                  {item.children && (
+                    <svg
+                      width="9"
+                      height="9"
+                      viewBox="0 0 10 10"
+                      className="transition-transform group-hover:rotate-180"
+                    >
+                      <path
+                        d="M1 3l4 4 4-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      />
+                    </svg>
+                  )}
+                  <span
+                    className={`absolute inset-x-0 bottom-0 h-px origin-left transition-transform duration-300 ${
+                      isActive
+                        ? 'scale-x-100 bg-signal'
+                        : 'scale-x-0 bg-current group-hover:scale-x-100'
+                    }`}
+                  />
+                </Link>
                 {item.children && (
-                  <svg
-                    width="9"
-                    height="9"
-                    viewBox="0 0 10 10"
-                    className="transition-transform group-hover:rotate-180"
-                  >
-                    <path
-                      d="M1 3l4 4 4-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                )}
-                <span className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-current transition-transform duration-300 group-hover:scale-x-100" />
-              </a>
-              {item.children && (
-                <div className="invisible absolute -left-5 top-full w-72 translate-y-2 pt-3 opacity-0 transition-all duration-300 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  <div className="rounded-sm bg-white p-2 shadow-2xl shadow-ink/15 ring-1 ring-ink/5">
-                    {item.children.map((c) => (
-                      <a
-                        key={c.label}
-                        href={c.path}
-                        onClick={(e) => go(e, c.anchor)}
-                        className="block px-4 py-3 text-sm font-medium text-ink/75 transition-colors hover:bg-paper hover:text-deep"
-                      >
-                        {c.label}
-                      </a>
-                    ))}
+                  <div className="invisible absolute -left-5 top-full w-72 translate-y-2 pt-3 opacity-0 transition-all duration-300 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                    <div className="rounded-lg bg-white p-2 shadow-2xl shadow-ink/15 ring-1 ring-ink/5">
+                      {item.children.map((c) => (
+                        <Link
+                          key={c.label}
+                          href={c.path}
+                          onClick={() => setOpen(false)}
+                          className="block rounded-md px-4 py-3 text-sm font-medium text-ink/75 transition-colors hover:bg-paper hover:text-deep"
+                        >
+                          {c.label}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
-          <a
-            href="#contact"
-            onClick={(e) => go(e, 'contact')}
-            className={`rounded-full border px-5 py-2.5 text-[13px] font-bold transition-colors ${
+                )}
+              </div>
+            );
+          })}
+          <Link
+            href="/contact"
+            onClick={handleContactClick}
+            className={`rounded-full border px-5 py-2.5 text-[13px] font-bold transition-all ${
               light
                 ? 'border-white/50 text-white hover:bg-white hover:text-ink'
                 : 'border-ink text-ink hover:bg-ink hover:text-white'
             }`}
           >
             Contact
-          </a>
+          </Link>
         </nav>
 
+        {/* Mobile menu trigger */}
         <button
-          className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 lg:hidden"
+          className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:hidden"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
           aria-expanded={open}
@@ -109,13 +169,13 @@ export default function Nav() {
           {[0, 1, 2].map((k) => (
             <span
               key={k}
-              className={`h-px w-6 transition-all ${light ? 'bg-white' : 'bg-ink'} ${
+              className={`h-0.5 w-6 rounded-full transition-all duration-300 ${light ? 'bg-white' : 'bg-ink'} ${
                 open
                   ? k === 0
-                    ? 'translate-y-[7px] rotate-45'
+                    ? 'translate-y-[8px] rotate-45'
                     : k === 1
-                    ? 'opacity-0'
-                    : '-translate-y-[7px] -rotate-45'
+                    ? 'opacity-0 scale-x-0'
+                    : '-translate-y-[8px] -rotate-45'
                   : ''
               }`}
             />
@@ -123,29 +183,64 @@ export default function Nav() {
         </button>
       </div>
 
+      {/* Mobile Drawer */}
       {open && (
-        <div className="max-h-[calc(100vh-5rem)] overflow-y-auto border-t border-line bg-white px-6 pb-8 pt-2 lg:hidden">
-          {NAV.map((item) => (
-            <div key={item.label} className="border-b border-line py-3">
-              <a
-                href={item.path}
-                onClick={(e) => go(e, item.anchor)}
-                className="block py-1 text-xl font-medium"
-              >
-                {item.label}
-              </a>
-              {item.children?.map((c) => (
-                <a
-                  key={c.label}
-                  href={c.path}
-                  onClick={(e) => go(e, c.anchor)}
-                  className="block py-1.5 pl-4 text-sm text-ink/60"
+        <div className="fixed inset-x-0 top-16 sm:top-20 bottom-0 z-40 overflow-y-auto bg-white px-6 pb-12 pt-4 shadow-2xl border-t border-line lg:hidden">
+          <div className="flex flex-col divide-y divide-line">
+            {NAV.map((item) => (
+              <div key={item.label} className="py-3.5">
+                <Link
+                  href={item.path}
+                  onClick={(e) => handleNavClick(e, item)}
+                  className={`flex items-center justify-between text-lg font-semibold transition-colors ${
+                    pathname === item.path ? 'text-brand font-bold' : 'text-ink hover:text-brand'
+                  }`}
                 >
-                  {c.label}
-                </a>
-              ))}
-            </div>
-          ))}
+                  <span>{item.label}</span>
+                </Link>
+                {item.children && (
+                  <div className="mt-2 space-y-1.5 pl-3 border-l-2 border-brand/25">
+                    {item.children.map((c) => (
+                      <Link
+                        key={c.label}
+                        href={c.path}
+                        onClick={() => setOpen(false)}
+                        className="block py-1.5 text-sm font-medium text-ink/65 transition-colors hover:text-brand"
+                      >
+                        {c.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Direct CTA button in mobile drawer */}
+          <div className="mt-6 pt-2">
+            <Link
+              href="/contact"
+              onClick={handleContactClick}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-signal px-6 py-3.5 text-center text-sm font-bold text-ink shadow-sm transition-transform active:scale-[0.98]"
+            >
+              <span>Contact Us</span>
+              <svg
+                width="16"
+                height="9"
+                viewBox="0 0 18 10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M0 5h16M12 1l4 4-4 4" />
+              </svg>
+            </Link>
+          </div>
+
+          <div className="mt-6 flex flex-col items-center gap-2 text-center text-xs text-ink/45">
+            <p>Functional Safety &amp; Cybersecurity Partner</p>
+            <p className="font-semibold text-ink/60">Drive. Vision. Realize.</p>
+          </div>
         </div>
       )}
     </header>

@@ -49,9 +49,9 @@ const RoutePreviewToast: React.FC = () => {
 
 export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
-  const isHomePage = pathname === '/';
+  const isCustomShell = pathname === '/' || pathname === '/products';
 
-  if (isHomePage) {
+  if (isCustomShell) {
     return (
       <NavigationProvider>
         {children}

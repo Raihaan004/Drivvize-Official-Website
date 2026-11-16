@@ -31,26 +31,25 @@ export const IMG = {
 export type NavItem = {
   label: string
   path: string
-  anchor: string
-  children?: { label: string; path: string; anchor: string }[]
+  anchor?: string
+  children?: { label: string; path: string; anchor?: string }[]
 }
 
 export const NAV: NavItem[] = [
-  { label: 'Products', path: '/products', anchor: 'systems' },
+  { label: 'Products', path: '/products' },
   {
     label: 'Services',
     path: '/services',
-    anchor: 'partner',
     children: [
-      { label: 'Functional Safety Services', path: '/services#functional-safety', anchor: 'partner' },
-      { label: 'Cybersecurity Services', path: '/services#cybersecurity', anchor: 'partner' },
-      { label: 'Trainings', path: '/services#trainings', anchor: 'founders' },
+      { label: 'Functional Safety Services', path: '/services#functional-safety' },
+      { label: 'Cybersecurity Services', path: '/services#cybersecurity' },
+      { label: 'Trainings', path: '/services#trainings' },
     ],
   },
-  { label: 'Clients', path: '/clients', anchor: 'proof' },
-  { label: 'Case Studies', path: '/casestudies', anchor: 'systems' },
-  { label: 'Learn', path: '/learn', anchor: 'recognition' },
-  { label: 'Scope Checker', path: '/scope-checker', anchor: 'systems' },
+  { label: 'Clients', path: '/#proof', anchor: 'proof' },
+  { label: 'Case Studies', path: '/casestudies' },
+  { label: 'Learn', path: '/learn' },
+  { label: 'Scope Checker', path: '/scope-checker' },
 ]
 
 export const HERO_SLIDES = [
@@ -146,9 +145,15 @@ export const FOUNDERS = [
   },
 ]
 
-export function goTo(anchor: string) {
-  if (typeof document !== 'undefined') {
-    document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+export function goTo(anchor: string, fallbackPath?: string) {
+  if (typeof window === 'undefined') return;
+  const el = document.getElementById(anchor);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (fallbackPath) {
+    window.location.href = fallbackPath;
+  } else {
+    window.location.href = anchor === 'top' ? '/' : `/#${anchor}`;
   }
 }
 

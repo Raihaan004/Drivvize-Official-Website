@@ -2,24 +2,57 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
-export function useInView<T extends Element>(threshold = 0.2) {
+export function useInView<T extends Element>(threshold = 0, rootMargin = '150px') {
   const ref = useRef<T>(null);
   const [seen, setSeen] = useState(false);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setSeen(true);
-          io.disconnect();
-        }
-      },
-      { threshold },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [threshold]);
+
+    let io: IntersectionObserver | null = null;
+    let timer: NodeJS.Timeout | null = null;
+    let raf: number | null = null;
+
+    // Check visibility asynchronously via rAF to avoid synchronous setState inside effect
+    raf = requestAnimationFrame(() => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 150 && rect.bottom > -150) {
+        setSeen(true);
+      }
+    });
+
+    try {
+      io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting || e.intersectionRatio > 0) {
+              setSeen(true);
+              if (io) io.disconnect();
+              break;
+            }
+          }
+        },
+        { threshold: 0, rootMargin },
+      );
+      io.observe(el);
+    } catch {
+      timer = setTimeout(() => setSeen(true), 0);
+    }
+
+    // Safety fallback: Ensure element is revealed even if IO is delayed or blocked
+    const fallbackTimer = setTimeout(() => {
+      setSeen(true);
+    }, 800);
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      if (io) io.disconnect();
+      if (timer) clearTimeout(timer);
+      clearTimeout(fallbackTimer);
+    };
+  }, [threshold, rootMargin]);
+
   return [ref, seen] as const;
 }
 
@@ -36,7 +69,7 @@ export function Reveal({
   as?: 'div' | 'li' | 'article' | 'p' | 'h2' | 'span';
   style?: CSSProperties;
 }) {
-  const [ref, seen] = useInView<HTMLElement>(0.12);
+  const [ref, seen] = useInView<HTMLElement>(0, '100px');
   return (
     <Tag
       ref={ref as never}
@@ -53,7 +86,7 @@ export function Photo({
   src,
   alt,
   className = '',
-  speed = 0.1,
+  speed = 0.08,
   delay = 0,
   position = '50% 50%',
 }: {
@@ -64,8 +97,9 @@ export function Photo({
   delay?: number;
   position?: string;
 }) {
-  const [ref, seen] = useInView<HTMLDivElement>(0.1);
+  const [ref, seen] = useInView<HTMLDivElement>(0, '150px');
   const imgRef = useRef<HTMLImageElement>(null);
+
   useEffect(() => {
     const wrap = ref.current;
     const im = imgRef.current;
@@ -75,7 +109,7 @@ export function Photo({
       raf = 0;
       const r = wrap.getBoundingClientRect();
       const c = r.top + r.height / 2 - window.innerHeight / 2;
-      im.style.transform = `translate3d(0, ${(-c * speed).toFixed(1)}px, 0) scale(${1 + speed * 3})`;
+      im.style.transform = `translate3d(0, ${(-c * speed).toFixed(1)}px, 0) scale(${1 + speed * 2})`;
     };
     const on = () => {
       if (!raf) raf = requestAnimationFrame(update);
@@ -89,13 +123,15 @@ export function Photo({
       if (raf) cancelAnimationFrame(raf);
     };
   }, [ref, speed]);
+
   return (
     <div
       ref={ref}
       className={`relative overflow-hidden bg-paper ${className}`}
       style={{
         clipPath: seen ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)',
-        transition: `clip-path 1.3s cubic-bezier(0.7, 0, 0.2, 1) ${delay}ms`,
+        opacity: seen ? 1 : 0.85,
+        transition: `clip-path 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms, opacity 0.8s ease-out ${delay}ms`,
       }}
     >
       <img
