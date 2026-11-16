@@ -101,7 +101,7 @@ export const PRIMARY_NAV_ROUTES: NavRouteItem[] = [
   // Services is rendered via ServicesDropdown right after Products
   { label: 'Clients', href: '/clients', sectionAnchor: 'experience' },
   { label: 'Case Studies', href: '/casestudies', isPage: true },
-  { label: 'Learn', href: '/learn', sectionAnchor: 'recognition' },
+  { label: 'Learn', href: '/learn', isPage: true },
   { label: 'Scope Checker', href: '/scope-checker', isPage: true },
 ];
 

@@ -57,7 +57,7 @@ const FOOTER_COLUMNS: FooterColumnConfig[] = [
     links: [
       { label: 'Clients', href: '/clients', sectionAnchor: 'experience' },
       { label: 'Case Studies', href: '/casestudies', isPage: true },
-      { label: 'Learn', href: '/learn', sectionAnchor: 'recognition' },
+      { label: 'Learn', href: '/learn', isPage: true },
       { label: 'Scope Checker', href: '/scope-checker', isPage: true },
     ],
   },

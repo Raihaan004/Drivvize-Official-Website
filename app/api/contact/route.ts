@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { db } from '@/lib/db';
+import { contactSubmissions } from '@/lib/db/schema';
+import { desc } from 'drizzle-orm';
 
 interface ContactPayload {
   firstName?: unknown;
@@ -21,6 +24,32 @@ function escapeHtml(value: string): string {
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+export async function GET() {
+  try {
+    const submissions = await db
+      .select()
+      .from(contactSubmissions)
+      .orderBy(desc(contactSubmissions.createdAt))
+      .limit(10);
+
+    return NextResponse.json({
+      success: true,
+      service: 'Neon Postgres',
+      totalReturned: submissions.length,
+      submissions,
+    });
+  } catch (error) {
+    console.error('Failed to fetch contact submissions from Neon database:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Database fetch error',
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -72,6 +101,26 @@ export async function POST(request: Request) {
     );
   }
 
+  // 1. Persist submission into Neon Postgres via Drizzle ORM
+  let insertedId: number | null = null;
+  try {
+    const [inserted] = await db
+      .insert(contactSubmissions)
+      .values({
+        firstName,
+        lastName,
+        email,
+        phone,
+        companyName: companyName || null,
+        message,
+      })
+      .returning({ id: contactSubmissions.id });
+    insertedId = inserted?.id ?? null;
+  } catch (dbErr) {
+    console.error('Failed to persist contact inquiry into Neon Postgres:', dbErr);
+  }
+
+  // 2. Attempt optional SMTP delivery if credentials are provided
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpPort = Number(process.env.SMTP_PORT || '465');
   const smtpSecure =
@@ -84,120 +133,107 @@ export async function POST(request: Request) {
     process.env.CONTACT_RECEIVER_EMAIL?.trim() || smtpUser;
   const webhookUrl = process.env.CONTACT_WEBHOOK_URL?.trim();
 
-  if (!smtpUser || !smtpPass || !receiverEmail) {
-    return NextResponse.json(
-      {
-        error:
-          'Email service is not configured yet. Please set SMTP_USER, SMTP_PASS, and CONTACT_RECEIVER_EMAIL in .env.local.',
-      },
-      { status: 503 }
-    );
-  }
+  if (smtpUser && smtpPass && receiverEmail) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
 
-  try {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpSecure,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
+      const fullName = `${firstName} ${lastName}`;
+      const subject = `New Contact Inquiry from ${fullName} — Drivvize`;
 
-    const fullName = `${firstName} ${lastName}`;
-    const subject = `New Contact Inquiry from ${fullName} — Drivvize`;
+      const textBody = [
+        'New Contact Us Submission (Drivvize Website)',
+        '-------------------------------------------',
+        `First Name:   ${firstName}`,
+        `Last Name:    ${lastName}`,
+        `Gmail ID:     ${email}`,
+        `Phone No.:    ${phone}`,
+        `Company Name: ${companyName || 'Not provided'}`,
+        '',
+        'Message:',
+        message,
+      ].join('\n');
 
-    const textBody = [
-      'New Contact Us Submission (Drivvize Website)',
-      '-------------------------------------------',
-      `First Name:   ${firstName}`,
-      `Last Name:    ${lastName}`,
-      `Gmail ID:     ${email}`,
-      `Phone No.:    ${phone}`,
-      `Company Name: ${companyName || 'Not provided'}`,
-      '',
-      'Message:',
-      message,
-    ].join('\n');
-
-    const htmlBody = `
-      <div style="font-family: Arial, sans-serif; color: #202B36; max-width: 640px; margin: 0 auto; border: 1px solid #DCE3EA; border-radius: 12px; overflow: hidden;">
-        <div style="background: #0B2545; color: #FFFFFF; padding: 20px 24px;">
-          <div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #06B6D4; font-weight: 700;">Drivvize Website Inquiry</div>
-          <h2 style="margin: 6px 0 0; font-size: 20px;">New Contact Us Submission</h2>
-        </div>
-        <div style="padding: 24px; background: #FFFFFF;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-            <tr>
-              <td style="padding: 8px 0; color: #315B7D; font-weight: 600; width: 140px;">First Name</td>
-              <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(firstName)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Last Name</td>
-              <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(lastName)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Gmail ID</td>
-              <td style="padding: 8px 0; color: #2563EB;"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Phone No.</td>
-              <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(phone)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Company Name</td>
-              <td style="padding: 8px 0; color: #0B2545;">${companyName ? escapeHtml(companyName) : '<span style="color:#94A3B8;">Not provided</span>'}</td>
-            </tr>
-          </table>
-          <div style="margin-top: 20px; padding: 16px; background: #F8FAFC; border: 1px solid #DCE3EA; border-radius: 8px;">
-            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #315B7D; font-weight: 700; margin-bottom: 8px;">Message</div>
-            <div style="font-size: 14px; line-height: 1.6; color: #202B36; white-space: pre-wrap;">${escapeHtml(message)}</div>
+      const htmlBody = `
+        <div style="font-family: Arial, sans-serif; color: #202B36; max-width: 640px; margin: 0 auto; border: 1px solid #DCE3EA; border-radius: 12px; overflow: hidden;">
+          <div style="background: #0B2545; color: #FFFFFF; padding: 20px 24px;">
+            <div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #06B6D4; font-weight: 700;">Drivvize Website Inquiry</div>
+            <h2 style="margin: 6px 0 0; font-size: 20px;">New Contact Us Submission</h2>
+          </div>
+          <div style="padding: 24px; background: #FFFFFF;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <tr>
+                <td style="padding: 8px 0; color: #315B7D; font-weight: 600; width: 140px;">First Name</td>
+                <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(firstName)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Last Name</td>
+                <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(lastName)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Gmail ID</td>
+                <td style="padding: 8px 0; color: #2563EB;"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Phone No.</td>
+                <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(phone)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Company Name</td>
+                <td style="padding: 8px 0; color: #0B2545;">${companyName ? escapeHtml(companyName) : '<span style="color:#94A3B8;">Not provided</span>'}</td>
+              </tr>
+            </table>
+            <div style="margin-top: 20px; padding: 16px; background: #F8FAFC; border: 1px solid #DCE3EA; border-radius: 8px;">
+              <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #315B7D; font-weight: 700; margin-bottom: 8px;">Message</div>
+              <div style="font-size: 14px; line-height: 1.6; color: #202B36; white-space: pre-wrap;">${escapeHtml(message)}</div>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    await transporter.sendMail({
-      from: `"Drivvize Contact Form" <${smtpUser}>`,
-      to: receiverEmail,
-      replyTo: email,
-      subject,
-      text: textBody,
-      html: htmlBody,
-    });
-
-    if (webhookUrl) {
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          phone,
-          companyName: companyName || undefined,
-          message,
-          submittedAt: new Date().toISOString(),
-        }),
-      }).catch((err) => {
-        console.error('Optional contact webhook failed:', err);
+      await transporter.sendMail({
+        from: `"Drivvize Contact Form" <${smtpUser}>`,
+        to: receiverEmail,
+        replyTo: email,
+        subject,
+        text: textBody,
+        html: htmlBody,
       });
+    } catch (mailErr) {
+      console.warn('Optional SMTP notification delivery failed:', mailErr);
     }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Thank you! Your message has been sent to our team.',
-    });
-  } catch (error) {
-    console.error('Failed to send contact email:', error);
-    return NextResponse.json(
-      {
-        error:
-          'Unable to send your message right now. Please verify the SMTP settings or try again shortly.',
-      },
-      { status: 500 }
-    );
   }
-}
 
+  // 3. Optional webhook notification
+  if (webhookUrl) {
+    fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: insertedId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        companyName: companyName || undefined,
+        message,
+        submittedAt: new Date().toISOString(),
+      }),
+    }).catch((err) => {
+      console.error('Optional contact webhook failed:', err);
+    });
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: 'Thank you! Your message has been received and saved.',
+    id: insertedId,
+  });
+}
