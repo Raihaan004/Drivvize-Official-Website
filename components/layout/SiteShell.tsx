@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { X, CornerDownRight } from 'lucide-react';
 import { NavigationProvider, useNavigation } from './NavigationContext';
 import { Navbar } from './Navbar';
@@ -47,6 +48,17 @@ const RoutePreviewToast: React.FC = () => {
 };
 
 export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
+
+  if (isHomePage) {
+    return (
+      <NavigationProvider>
+        {children}
+      </NavigationProvider>
+    );
+  }
+
   return (
     <NavigationProvider>
       <div className="min-h-screen flex flex-col bg-white text-[#202B36] selection:bg-[#2563EB]/15 selection:text-[#0B2545]">

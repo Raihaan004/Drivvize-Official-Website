@@ -1,21 +1,29 @@
-import { HeroSection } from "@/components/sections/HeroSection";
-import { CapabilitySection } from "@/components/sections/CapabilitySection";
-import { StatisticsSection } from "@/components/sections/StatisticsSection";
-import { SystemsShowcase } from "@/components/sections/SystemsShowcase";
-import { RecognitionSection } from "@/components/sections/RecognitionSection";
-import { FoundersSection } from "@/components/sections/FoundersSection";
-import { CTASection } from "@/components/sections/CTASection";
+import Nav from '@/components/premium-home/Nav';
+import Hero from '@/components/premium-home/Hero';
+import About from '@/components/premium-home/About';
+import Band from '@/components/premium-home/Band';
+import Partner from '@/components/premium-home/Partner';
+import Proof from '@/components/premium-home/Proof';
+import Systems from '@/components/premium-home/Systems';
+import Recognition from '@/components/premium-home/Recognition';
+import Founders from '@/components/premium-home/Founders';
+import Footer from '@/components/premium-home/Footer';
 
 export default function Home() {
   return (
     <>
-      <HeroSection />
-      <CapabilitySection />
-      <StatisticsSection />
-      <SystemsShowcase />
-      <RecognitionSection />
-      <FoundersSection />
-      <CTASection />
+      <Nav />
+      <main>
+        <Hero />
+        <About />
+        <Band />
+        <Partner />
+        <Proof />
+        <Systems />
+        <Recognition />
+        <Founders />
+      </main>
+      <Footer />
     </>
   );
 }

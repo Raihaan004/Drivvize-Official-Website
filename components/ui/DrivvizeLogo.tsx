@@ -20,10 +20,10 @@ export const DrivvizeLogo: React.FC<DrivvizeLogoProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center select-none group ${
+      className={`inline-flex items-center select-none group rounded-[12px] bg-white px-3.5 py-1.5 border ${
         isDarkSurface
-          ? 'rounded-[12px] bg-white/95 px-3.5 py-2 border border-white/20 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.45)]'
-          : ''
+          ? 'border-white/20 shadow-[0_8px_22px_-6px_rgba(0,0,0,0.45)]'
+          : 'border-[#DCE3EA] shadow-xs'
       } ${className}`}
       aria-label="Drivvize Home"
     >
