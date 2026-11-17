@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { X, CornerDownRight } from 'lucide-react';
 import { NavigationProvider, useNavigation } from './NavigationContext';
@@ -47,43 +47,48 @@ const RoutePreviewToast: React.FC = () => {
   );
 };
 
-export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const SiteShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
-  const isCustomShell = pathname === '/' || pathname === '/products';
+  const isCustomShell =
+    pathname === '/' || pathname === '/products' || pathname.startsWith('/admin');
 
   if (isCustomShell) {
-    return (
-      <NavigationProvider>
-        {children}
-      </NavigationProvider>
-    );
+    return <>{children}</>;
   }
 
   return (
+    <div className="min-h-screen flex flex-col bg-white text-[#202B36] selection:bg-[#2563EB]/15 selection:text-[#0B2545]">
+      {/* Skip to main content accessibility link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#0B2545] focus:text-white focus:text-sm focus:font-semibold"
+      >
+        Skip to main content
+      </a>
+
+      {/* Sticky Corporate Navigation Bar */}
+      <Navbar />
+
+      {/* Main Page Content */}
+      <main id="main-content" className="flex-1">
+        {children}
+      </main>
+
+      {/* Multi-Column Corporate Footer */}
+      <Footer />
+
+      {/* Route Preview Toast */}
+      <RoutePreviewToast />
+    </div>
+  );
+};
+
+export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
     <NavigationProvider>
-      <div className="min-h-screen flex flex-col bg-white text-[#202B36] selection:bg-[#2563EB]/15 selection:text-[#0B2545]">
-        {/* Skip to main content accessibility link */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#0B2545] focus:text-white focus:text-sm focus:font-semibold"
-        >
-          Skip to main content
-        </a>
-
-        {/* Sticky Corporate Navigation Bar */}
-        <Navbar />
-
-        {/* Main Page Content */}
-        <main id="main-content" className="flex-1">
-          {children}
-        </main>
-
-        {/* Multi-Column Corporate Footer */}
-        <Footer />
-
-        {/* Route Preview Toast */}
-        <RoutePreviewToast />
-      </div>
+      <Suspense fallback={<main className="flex-1">{children}</main>}>
+        <SiteShellInner>{children}</SiteShellInner>
+      </Suspense>
     </NavigationProvider>
   );
 };

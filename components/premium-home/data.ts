@@ -48,6 +48,7 @@ export const NAV: NavItem[] = [
   },
   { label: 'Clients', path: '/#proof', anchor: 'proof' },
   { label: 'Case Studies', path: '/casestudies' },
+  { label: 'Blog', path: '/blog' },
   { label: 'Learn', path: '/learn' },
   { label: 'Scope Checker', path: '/scope-checker' },
 ]

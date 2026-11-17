@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import { contactSubmissions } from '@/lib/db/schema';
 import { sql } from 'drizzle-orm';
 
+
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     // 1. Raw diagnostic query executing on Neon Postgres

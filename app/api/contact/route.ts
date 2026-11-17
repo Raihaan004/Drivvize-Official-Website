@@ -26,6 +26,9 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const submissions = await db

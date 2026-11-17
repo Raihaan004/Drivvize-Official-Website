@@ -20,6 +20,8 @@ export const metadata: Metadata = {
     "Drivvize — Trusted partner for Automotive Engineering, Functional Safety (ISO 26262), Cybersecurity (ISO 21434), ADAS, and Software-Defined Vehicles.",
 };
 
+export const instant = false;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
