@@ -12,8 +12,6 @@ function isValidEmail(email: string): boolean {
 }
 
 
-export const dynamic = 'force-dynamic';
-
 function resolvePdfFilePath(fileName: string): string | null {
   const privatePath = path.join(process.cwd(), 'private_documents', 'download_pdf', fileName);
   if (fs.existsSync(privatePath)) {

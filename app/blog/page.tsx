@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { blogs } from '@/lib/db/schema';
@@ -26,6 +27,7 @@ interface BlogRow {
 }
 
 export default async function BlogIndexPage() {
+  await connection();
   let publishedBlogs: BlogRow[] = [];
   try {
     publishedBlogs = await db

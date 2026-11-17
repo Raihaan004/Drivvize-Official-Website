@@ -16,12 +16,12 @@ function generateSlug(text: string): string {
 }
 
 export async function GET() {
-  try {
-    const session = await getAdminSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
+  try {
     const allBlogs = await db.select().from(blogs).orderBy(desc(blogs.createdAt));
     return NextResponse.json({ success: true, blogs: allBlogs });
   } catch (error) {

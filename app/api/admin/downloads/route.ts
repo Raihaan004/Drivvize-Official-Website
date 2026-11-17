@@ -6,12 +6,12 @@ import { getAdminSession } from '@/lib/adminAuth';
 
 
 export async function GET(req: Request) {
-  try {
-    const session = await getAdminSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
+  try {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('q')?.trim();
     const fieldFilter = searchParams.get('field')?.trim();

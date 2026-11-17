@@ -27,8 +27,6 @@ function isValidEmail(email: string): boolean {
 }
 
 
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
   try {
     const submissions = await db

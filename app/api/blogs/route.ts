@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, connection } from 'next/server';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { blogs } from '@/lib/db/schema';
 
 
 export async function GET() {
+  await connection();
   try {
     const publishedBlogs = await db
       .select()
