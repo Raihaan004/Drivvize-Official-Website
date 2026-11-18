@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
 import { IMG } from '@/components/premium-home/data';
@@ -271,14 +272,12 @@ export function ContactClient() {
                 <p className="mt-10 max-w-sm text-[15px] leading-relaxed text-white/60">
                   Tell us about your project, product inquiry, or training requirements.
                 </p>
-                <a
-                  href={`mailto:${EMAIL}?subject=${encodeURIComponent(
-                    'Career inquiry / Resume submission'
-                  )}`}
+                <Link
+                  href="/careers"
                   className="mt-6 inline-flex items-center gap-2 text-[13px] font-bold text-signal underline decoration-signal/40 underline-offset-4 transition-colors hover:decoration-signal"
                 >
                   Looking for a career? Submit your resume
-                </a>
+                </Link>
 
                 <Photo
                   src={IMG.engineer}

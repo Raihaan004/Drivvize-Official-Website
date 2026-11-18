@@ -41,23 +41,24 @@ export default function Proof() {
 
         <div className="flex flex-col gap-3 lg:h-[480px] lg:flex-row">
           {INDUSTRIES.map((x, i) => (
-            <Reveal
+            <div
               key={x.name}
-              delay={i * 120}
-              className="group relative h-64 overflow-hidden bg-paper lg:h-auto lg:flex-1 lg:transition-[flex] lg:duration-700 lg:ease-out lg:hover:flex-[1.7]"
+              className="group relative h-64 overflow-hidden bg-paper lg:h-auto lg:flex-[1_1_0%] lg:transition-[flex-grow,flex] lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:hover:flex-[1.7_1_0%]"
             >
-              <img
-                src={x.image}
-                alt={x.name}
-                loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
-              <p className="absolute bottom-6 left-7 text-3xl font-light tracking-tight text-white">
-                {x.name}
-              </p>
-              <span className="absolute bottom-0 left-0 h-[3px] w-0 bg-signal transition-all duration-700 group-hover:w-full" />
-            </Reveal>
+              <Reveal delay={i * 120} className="relative h-full w-full">
+                <img
+                  src={x.image}
+                  alt={x.name}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] ease-out group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
+                <p className="absolute bottom-6 left-7 text-3xl font-light tracking-tight text-white">
+                  {x.name}
+                </p>
+                <span className="absolute bottom-0 left-0 h-[3px] w-0 bg-signal transition-all duration-700 ease-out group-hover:w-full" />
+              </Reveal>
+            </div>
           ))}
         </div>
       </div>

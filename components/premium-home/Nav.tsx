@@ -64,15 +64,8 @@ export default function Nav() {
     }
   };
 
-  const handleContactClick = (e: React.MouseEvent) => {
+  const handleContactClick = () => {
     setOpen(false);
-    if (pathname === '/') {
-      const el = document.getElementById('contact');
-      if (el) {
-        e.preventDefault();
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
   };
 
   const light = !solid && !open;
@@ -104,7 +97,11 @@ export default function Nav() {
             const isChildActive = Boolean(
               item.children?.some((c) => {
                 const [cPath] = c.path.split('#');
-                return cPath && cPath !== '/' && pathname === cPath;
+                return (
+                  cPath &&
+                  cPath !== '/' &&
+                  (pathname === cPath || pathname.startsWith(`${cPath}/`))
+                );
               })
             );
             const isActive = isBaseActive || isChildActive;

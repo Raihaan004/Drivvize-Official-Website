@@ -67,6 +67,7 @@ export const NAV: NavItem[] = [
       { label: 'Knowledge Mine', path: '/learn#knowledge', anchor: 'knowledge' },
       { label: 'Videos', path: '/learn#videos', anchor: 'videos' },
       { label: 'Downloads', path: '/learn#downloads', anchor: 'downloads' },
+      { label: 'FAQs', path: '/faqs' },
     ],
   },
   { label: 'Scope Checker', path: '/scope-checker' },

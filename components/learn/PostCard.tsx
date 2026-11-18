@@ -1,15 +1,39 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { readMinutes, type Post } from './learn-data'
+import Link from 'next/link';
+import { readMinutes, type Post } from './learn-data';
 
-export default function PostCard({ post, large = false }: { post: Post; large?: boolean }) {
+export type PostCardItem = {
+  slug: string;
+  title: string;
+  category: string;
+  excerpt: string;
+  image: string;
+  blocks?: Post['blocks'];
+  readTimeLabel?: string;
+};
+
+export default function PostCard({
+  post,
+  large = false,
+}: {
+  post: PostCardItem;
+  large?: boolean;
+}) {
+  const readLabel =
+    post.readTimeLabel ||
+    (post.blocks ? `${readMinutes(post as Post)} min read` : '3 min read');
+
   return (
     <Link
       href={`/blog/${post.slug}`}
       className={`group block ${large ? 'lg:grid lg:grid-cols-12 lg:items-center lg:gap-14' : ''}`}
     >
-      <div className={`relative overflow-hidden bg-deep ${large ? 'aspect-[16/10] lg:col-span-7' : 'aspect-[4/3]'}`}>
+      <div
+        className={`relative overflow-hidden bg-deep ${
+          large ? 'aspect-[16/10] lg:col-span-7' : 'aspect-[4/3]'
+        }`}
+      >
         <img
           src={post.image}
           alt=""
@@ -23,7 +47,7 @@ export default function PostCard({ post, large = false }: { post: Post; large?: 
       </div>
       <div className={large ? 'mt-8 lg:col-span-5 lg:mt-0' : 'mt-6'}>
         <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-ink/45">
-          {readMinutes(post)} min read
+          {readLabel}
         </p>
         <h3
           className={`font-light tracking-tight transition-colors group-hover:text-deep ${
@@ -37,12 +61,16 @@ export default function PostCard({ post, large = false }: { post: Post; large?: 
         </p>
         <span className="mt-6 inline-flex items-center gap-3 text-[13px] font-bold">
           Read article
-          <svg width="18" height="10" viewBox="0 0 18 10" className="transition-transform group-hover:translate-x-1.5">
+          <svg
+            width="18"
+            height="10"
+            viewBox="0 0 18 10"
+            className="transition-transform group-hover:translate-x-1.5"
+          >
             <path d="M0 5h16M12 1l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.8" />
           </svg>
         </span>
       </div>
     </Link>
-  )
+  );
 }
-

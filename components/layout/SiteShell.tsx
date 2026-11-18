@@ -57,6 +57,11 @@ const SiteShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) =
     pathname === '/learn' ||
     pathname === '/events' ||
     pathname === '/contact' ||
+    pathname === '/scope-checker' ||
+    pathname === '/careers' ||
+    pathname === '/faqs' ||
+    pathname === '/blog' ||
+    pathname.startsWith('/blog/') ||
     pathname.startsWith('/admin');
 
   if (isCustomShell) {

@@ -35,7 +35,7 @@ export default function Recognition() {
           <div className="lg:col-span-7">
             <Reveal className="mb-10 flex items-end gap-6">
               <div className="title text-[clamp(4rem,8vw,7.5rem)] !font-extralight leading-none text-deep">
-                <CountUp to={400} suffix="K+" />
+                <CountUp to={500} suffix="K+" />
               </div>
               <p className="pb-3 text-sm font-semibold uppercase leading-snug tracking-[0.12em] text-ink/55">
                 viewers on
