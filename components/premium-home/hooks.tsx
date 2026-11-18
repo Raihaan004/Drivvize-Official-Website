@@ -14,13 +14,15 @@ export function useInView<T extends Element>(threshold = 0, rootMargin = '150px'
     let timer: NodeJS.Timeout | null = null;
     let raf: number | null = null;
 
-    // Check visibility asynchronously via rAF to avoid synchronous setState inside effect
-    raf = requestAnimationFrame(() => {
+    const check = () => {
       const rect = el.getBoundingClientRect();
       if (rect.top < window.innerHeight + 150 && rect.bottom > -150) {
         setSeen(true);
       }
-    });
+    };
+
+    raf = requestAnimationFrame(check);
+    timer = setTimeout(check, 100);
 
     try {
       io = new IntersectionObserver(
@@ -37,19 +39,16 @@ export function useInView<T extends Element>(threshold = 0, rootMargin = '150px'
       );
       io.observe(el);
     } catch {
-      timer = setTimeout(() => setSeen(true), 0);
+      check();
     }
 
-    // Safety fallback: Ensure element is revealed even if IO is delayed or blocked
-    const fallbackTimer = setTimeout(() => {
-      setSeen(true);
-    }, 800);
+    window.addEventListener('scroll', check, { passive: true });
 
     return () => {
       if (raf) cancelAnimationFrame(raf);
       if (io) io.disconnect();
       if (timer) clearTimeout(timer);
-      clearTimeout(fallbackTimer);
+      window.removeEventListener('scroll', check);
     };
   }, [threshold, rootMargin]);
 
@@ -109,7 +108,7 @@ export function Photo({
       raf = 0;
       const r = wrap.getBoundingClientRect();
       const c = r.top + r.height / 2 - window.innerHeight / 2;
-      im.style.transform = `translate3d(0, ${(-c * speed).toFixed(1)}px, 0) scale(${1 + speed * 2})`;
+      im.style.transform = `translate3d(0, ${(-c * speed).toFixed(1)}px, 0) scale(${1 + speed * 3})`;
     };
     const on = () => {
       if (!raf) raf = requestAnimationFrame(update);
@@ -130,8 +129,7 @@ export function Photo({
       className={`relative overflow-hidden bg-paper ${className}`}
       style={{
         clipPath: seen ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)',
-        opacity: seen ? 1 : 0.85,
-        transition: `clip-path 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms, opacity 0.8s ease-out ${delay}ms`,
+        transition: `clip-path 1.3s cubic-bezier(0.7, 0, 0.2, 1) ${delay}ms`,
       }}
     >
       <img

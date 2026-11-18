@@ -50,7 +50,14 @@ const RoutePreviewToast: React.FC = () => {
 const SiteShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const isCustomShell =
-    pathname === '/' || pathname === '/products' || pathname.startsWith('/admin');
+    pathname === '/' ||
+    pathname === '/products' ||
+    pathname === '/services' ||
+    pathname === '/casestudies' ||
+    pathname === '/learn' ||
+    pathname === '/events' ||
+    pathname === '/contact' ||
+    pathname.startsWith('/admin');
 
   if (isCustomShell) {
     return <>{children}</>;

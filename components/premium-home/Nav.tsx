@@ -29,27 +29,38 @@ export default function Nav() {
     };
   }, [open]);
 
-  const handleNavClick = (e: React.MouseEvent, item: { path: string; anchor?: string }) => {
+  const handleNavClick = (
+    e: React.MouseEvent,
+    item: { path: string; anchor?: string }
+  ) => {
     setOpen(false);
-    // If the item specifically has an anchor and we are currently on the homepage, scroll smoothly
-    if (item.anchor && pathname === '/') {
-      const el = document.getElementById(item.anchor);
+    const [targetPage, targetAnchor] = item.path.split('#');
+    const anchor = item.anchor || targetAnchor;
+    const isCurrentPage =
+      (targetPage === '' || targetPage === '/' ? pathname === '/' : pathname === targetPage);
+
+    if (isCurrentPage && anchor) {
+      e.preventDefault();
+      const el = document.getElementById(anchor);
       if (el) {
-        e.preventDefault();
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (targetAnchor) {
+          window.history.replaceState({}, '', `${pathname}#${targetAnchor}`);
+        }
+      } else if (anchor === 'top') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+    } else if (isCurrentPage && !anchor && targetPage === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    // Otherwise, allow standard Next.js Link page navigation to item.path
   };
 
   const handleLogoClick = (e: React.MouseEvent) => {
     setOpen(false);
     if (pathname === '/') {
-      const el = document.getElementById('top');
-      if (el) {
-        e.preventDefault();
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -78,7 +89,7 @@ export default function Nav() {
           href="/"
           onClick={handleLogoClick}
           aria-label="Drivvize home"
-          className="inline-flex items-center justify-center bg-white px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-[12px] border border-line shadow-xs hover:shadow-sm transition-all focus:outline-none"
+          className="inline-flex items-center justify-center bg-white px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-[12px] border border-line shadow-xs hover:shadow-sm transition-all focus:outline-none shrink-0"
         >
           <img
             src="/drivvize-logo.png"
@@ -87,15 +98,23 @@ export default function Nav() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-8 xl:gap-9 lg:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-5 xl:gap-7 lg:flex" aria-label="Primary">
           {NAV.map((item) => {
-            const isActive = pathname === item.path;
+            const isBaseActive = pathname === item.path;
+            const isChildActive = Boolean(
+              item.children?.some((c) => {
+                const [cPath] = c.path.split('#');
+                return cPath && cPath !== '/' && pathname === cPath;
+              })
+            );
+            const isActive = isBaseActive || isChildActive;
+
             return (
               <div key={item.label} className="group relative">
                 <Link
                   href={item.path}
                   onClick={(e) => handleNavClick(e, item)}
-                  className={`relative flex items-center gap-1.5 py-2 text-[14px] font-semibold transition-colors ${
+                  className={`relative flex items-center gap-1.5 py-2 text-[13.5px] xl:text-[14px] font-semibold transition-colors ${
                     isActive
                       ? light
                         ? 'text-signal font-bold'
@@ -129,13 +148,13 @@ export default function Nav() {
                 </Link>
                 {item.children && (
                   <div className="invisible absolute -left-5 top-full w-72 translate-y-2 pt-3 opacity-0 transition-all duration-300 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                    <div className="rounded-lg bg-white p-2 shadow-2xl shadow-ink/15 ring-1 ring-ink/5">
+                    <div className="rounded-sm bg-white p-2 shadow-2xl shadow-ink/15 ring-1 ring-ink/5">
                       {item.children.map((c) => (
                         <Link
                           key={c.label}
                           href={c.path}
-                          onClick={() => setOpen(false)}
-                          className="block rounded-md px-4 py-3 text-sm font-medium text-ink/75 transition-colors hover:bg-paper hover:text-deep"
+                          onClick={(e) => handleNavClick(e, c)}
+                          className="block px-4 py-3 text-sm font-medium text-ink/75 transition-colors hover:bg-paper hover:text-deep"
                         >
                           {c.label}
                         </Link>
@@ -149,7 +168,7 @@ export default function Nav() {
           <Link
             href="/contact"
             onClick={handleContactClick}
-            className={`rounded-full border px-5 py-2.5 text-[13px] font-bold transition-all ${
+            className={`rounded-full border px-5 py-2.5 text-[13px] font-bold transition-all shrink-0 ${
               light
                 ? 'border-white/50 text-white hover:bg-white hover:text-ink'
                 : 'border-ink text-ink hover:bg-ink hover:text-white'
@@ -185,7 +204,7 @@ export default function Nav() {
 
       {/* Mobile Drawer */}
       {open && (
-        <div className="fixed inset-x-0 top-16 sm:top-20 bottom-0 z-40 overflow-y-auto bg-white px-6 pb-12 pt-4 shadow-2xl border-t border-line lg:hidden">
+        <div className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-5rem)] overflow-y-auto border-t border-line bg-white px-6 pb-12 pt-2 shadow-2xl lg:hidden">
           <div className="flex flex-col divide-y divide-line">
             {NAV.map((item) => (
               <div key={item.label} className="py-3.5">
@@ -204,7 +223,7 @@ export default function Nav() {
                       <Link
                         key={c.label}
                         href={c.path}
-                        onClick={() => setOpen(false)}
+                        onClick={(e) => handleNavClick(e, c)}
                         className="block py-1.5 text-sm font-medium text-ink/65 transition-colors hover:text-brand"
                       >
                         {c.label}

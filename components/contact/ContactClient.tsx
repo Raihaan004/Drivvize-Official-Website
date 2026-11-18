@@ -1,431 +1,455 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Mail,
-  Phone,
-  User,
-  Building2,
-  MessageSquare,
-  Send,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-} from 'lucide-react';
-import { AmbientGlow } from '@/components/ui/AmbientGlow';
-import { TechnicalGrid } from '@/components/ui/TechnicalGrid';
-import { AnimatedGradientBackground } from '@/components/ui/AnimatedGradientBackground';
+import React, { useState, type ReactNode } from 'react';
+import Nav from '@/components/premium-home/Nav';
+import Footer from '@/components/premium-home/Footer';
+import { IMG } from '@/components/premium-home/data';
+import { Photo, Reveal } from '@/components/premium-home/hooks';
 
-interface FormState {
-  firstName: string;
-  lastName: string;
+const EMAIL = 'consult@drivvize.com';
+const PHONE_DISPLAY = '+91 91500 19689';
+const PHONE_HREF = 'tel:+919150019689';
+
+type Values = {
+  first: string;
+  last: string;
   email: string;
   phone: string;
-  companyName: string;
+  company: string;
   message: string;
-}
+};
 
-const INITIAL_FORM: FormState = {
-  firstName: '',
-  lastName: '',
+const EMPTY: Values = {
+  first: '',
+  last: '',
   email: '',
   phone: '',
-  companyName: '',
+  company: '',
   message: '',
 };
 
-export const ContactClient: React.FC = () => {
-  const [form, setForm] = useState<FormState>(INITIAL_FORM);
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+function validate(v: Values) {
+  const e: Partial<Record<keyof Values, string>> = {};
+  if (!v.first.trim()) e.first = 'Please enter your first name';
+  if (!v.last.trim()) e.last = 'Please enter your last name';
+  if (!v.email.trim()) e.email = 'Please enter your email';
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email.trim()))
+    e.email = 'Please enter a valid email address';
+  if (!v.phone.trim()) e.phone = 'Please enter your phone number';
+  else if (v.phone.replace(/\D/g, '').length < 7 || !/^[+\d\s()-]+$/.test(v.phone.trim()))
+    e.phone = 'Please enter a valid phone number';
+  if (!v.message.trim()) e.message = 'Please tell us a little about your requirement';
+  return e;
+}
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (errorMsg) setErrorMsg(null);
-  };
+const Icon = {
+  phone: (
+    <path d="M5 4h3l1.5 4-2 1.2a11 11 0 005.3 5.3L14 12.5l4 1.5v3a2 2 0 01-2 2A13 13 0 013 6a2 2 0 012-2z" />
+  ),
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+    </>
+  ),
+  building: (
+    <>
+      <rect x="5" y="3" width="14" height="18" />
+      <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" />
+    </>
+  ),
+  chat: <path d="M4 5h16v11H9l-5 4z" />,
+};
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+const Svg = ({ d }: { d: ReactNode }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinejoin="round"
+  >
+    {d}
+  </svg>
+);
+
+function Field({
+  id,
+  label,
+  optional,
+  icon,
+  error,
+  className = '',
+  children,
+}: {
+  id: string;
+  label: string;
+  optional?: boolean;
+  icon: ReactNode;
+  error?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={className}>
+      <label htmlFor={id} className="mb-1 flex items-baseline gap-2 text-[13px] font-bold text-ink">
+        {label}
+        {optional ? (
+          <span className="text-xs font-medium text-ink/45">(Optional)</span>
+        ) : (
+          <span className="text-red-600">*</span>
+        )}
+      </label>
+      <div
+        className={`group relative flex items-start gap-3 border-b transition-colors ${
+          error ? 'border-red-500' : 'border-ink/20 focus-within:border-ink'
+        }`}
+      >
+        <span
+          className={`mt-[14px] shrink-0 transition-colors ${
+            error ? 'text-red-500' : 'text-ink/35 group-focus-within:text-deep'
+          }`}
+        >
+          {icon}
+        </span>
+        {children}
+        <span className="absolute -bottom-px left-0 h-[2px] w-0 bg-signal transition-all duration-500 group-focus-within:w-full" />
+      </div>
+      <p
+        className={`min-h-5 pt-1.5 text-xs font-medium text-red-600 transition-opacity ${
+          error ? 'opacity-100' : 'opacity-0'
+        }`}
+        role={error ? 'alert' : undefined}
+      >
+        {error || '.'}
+      </p>
+    </div>
+  );
+}
+
+const inputClass = 'w-full bg-transparent py-3 text-[16px] text-ink outline-none placeholder:text-ink/30';
+
+export function ContactClient() {
+  const [v, setV] = useState<Values>(EMPTY);
+  const [touched, setTouched] = useState<Partial<Record<keyof Values, boolean>>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [done, setDone] = useState(false);
+  const errors = validate(v);
+  const show = (k: keyof Values) => ((touched[k] || submitted) && errors[k] ? errors[k] : undefined);
+
+  const bind = (k: keyof Values) => ({
+    id: k,
+    name: k,
+    value: v[k],
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setV({ ...v, [k]: e.target.value }),
+    onBlur: () => setTouched({ ...touched, [k]: true }),
+    'aria-invalid': Boolean(show(k)),
+  });
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
-    if (!form.firstName.trim() || !form.lastName.trim()) {
-      setErrorMsg('Please enter both your first name and last name.');
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      setErrorMsg('Please enter a valid Gmail ID / email address.');
-      return;
-    }
-    if (form.phone.replace(/\D/g, '').length < 7) {
-      setErrorMsg('Please enter a valid phone number.');
-      return;
-    }
-    if (form.message.trim().length < 5) {
-      setErrorMsg('Please enter your message (at least 5 characters).');
+    setSubmitted(true);
+    if (Object.keys(errors).length) {
+      document.getElementById(Object.keys(errors)[0])?.focus();
       return;
     }
 
-    setSubmitting(true);
+    // Persist to Neon Postgres backend in background
     try {
-      const response = await fetch('/api/contact', {
+      fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-
-      const data = (await response.json()) as {
-        success?: boolean;
-        message?: string;
-        error?: string;
-      };
-
-      if (!response.ok) {
-        setErrorMsg(
-          data.error || 'Something went wrong while sending your message.'
-        );
-        return;
-      }
-
-      setSuccessMsg(
-        data.message || 'Thank you! Your inquiry has been emailed to our team.'
-      );
-      setForm(INITIAL_FORM);
+        body: JSON.stringify({
+          firstName: v.first.trim(),
+          lastName: v.last.trim(),
+          email: v.email.trim(),
+          phone: v.phone.trim(),
+          companyName: v.company.trim(),
+          message: v.message.trim(),
+        }),
+      }).catch(() => {});
     } catch {
-      setErrorMsg(
-        'Network error while sending your message. Please try again.'
-      );
-    } finally {
-      setSubmitting(false);
+      // Non-blocking
     }
+
+    const body = [
+      `Name: ${v.first.trim()} ${v.last.trim()}`,
+      `Email: ${v.email.trim()}`,
+      `Phone: ${v.phone.trim()}`,
+      ...(v.company.trim() ? [`Company: ${v.company.trim()}`] : []),
+      '',
+      v.message.trim(),
+    ].join('\n');
+    const subject = `Website enquiry from ${v.first.trim()} ${v.last.trim()}${
+      v.company.trim() ? ` (${v.company.trim()})` : ''
+    }`;
+    window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+    setDone(true);
+  };
+
+  const reset = () => {
+    setV(EMPTY);
+    setTouched({});
+    setSubmitted(false);
+    setDone(false);
   };
 
   return (
-    <div className="bg-white">
-      {/* HERO HEADER */}
-      <section
-        aria-labelledby="contact-hero-heading"
-        className="relative overflow-hidden bg-gradient-corporate-blue text-white border-b border-[#315B7D]/45"
-      >
-        <AmbientGlow
-          tone="blue"
-          position="top-right"
-          sizeClass="w-[360px] h-[360px] sm:w-[540px] sm:h-[540px]"
-        />
-        <AmbientGlow
-          tone="cyan"
-          position="bottom-left"
-          hideOnMobile
-          sizeClass="w-[460px] h-[460px]"
-        />
-        <TechnicalGrid theme="dark" showNodes showParticles opacityClass="opacity-60" />
-
-        <div className="relative z-10 max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-18">
-          <div className="max-w-[780px]">
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/18 mb-5">
-              <span className="w-2 h-2 rounded-full bg-[#FACC15] ring-4 ring-[#FACC15]/20 shrink-0" />
-              <span className="text-[11px] sm:text-[12px] font-bold tracking-[0.09em] uppercase text-white">
-                CONTACT DRIVVIZE <span className="text-[#06B6D4] mx-1">|</span>{' '}
-                ENGINEERING CONSULTING
-              </span>
-            </div>
-
-            <h1
-              id="contact-hero-heading"
-              className="text-[36px] sm:text-[48px] lg:text-[54px] font-extrabold text-white leading-[1.08] tracking-[-0.025em]"
-            >
-              Contact <span className="text-gradient-innovation">Our Team</span>
+    <div className="bg-white text-ink selection:bg-signal selection:text-ink">
+      <Nav />
+      <main id="main-content">
+        {/* hero */}
+        <section className="relative isolate flex min-h-[58svh] items-end overflow-hidden bg-ink text-white">
+          <img
+            src={IMG.road}
+            alt=""
+            className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(10,16,24,0.85),rgba(10,16,24,0.3)),linear-gradient(0deg,rgba(10,16,24,0.7),transparent_50%)]" />
+          <div className="mx-auto w-full max-w-[1320px] px-6 pb-40 pt-40 lg:px-10 lg:pb-48">
+            <p className="eyebrow fade-up mb-6 text-signal">Contact us</p>
+            <h1 className="title text-white max-w-4xl text-[clamp(2.8rem,7vw,6.2rem)]">
+              {['Let’s', 'talk', 'safety.'].map((w, i) => (
+                <span key={w} className="word mr-[0.22em]">
+                  <span
+                    className={i === 2 ? 'font-semibold text-white' : 'text-white/80'}
+                    style={{ animationDelay: `${150 + i * 110}ms` }}
+                  >
+                    {w}
+                  </span>
+                </span>
+              ))}
             </h1>
-
-            <p className="mt-4 text-[16px] sm:text-[18px] text-[#DCE3EA] leading-[1.68] max-w-[660px]">
-              Share your project requirements, ISO 26262 Kit inquiry, or training
-              needs. Your message goes directly to our engineering team.
-            </p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FORM & DIRECT CONTACT DETAILS */}
-      <AnimatedGradientBackground
-        variant="light-corporate"
-        showGrid
-        showOrbs
-        className="py-14 sm:py-18 lg:py-20"
-      >
-        <div className="relative z-10 max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-            {/* LEFT: Direct Contact Card */}
-            <div className="lg:col-span-5">
-              <div className="rounded-[16px] bg-white border border-[#DCE3EA] p-6 sm:p-8 shadow-[0_10px_30px_-12px_rgba(11,37,69,0.08)]">
-                <h2 className="text-[24px] sm:text-[28px] font-bold text-[#0B2545]">
-                  Contact us
+        {/* content card overlapping hero */}
+        <section className="relative z-10 -mt-28 pb-28 lg:-mt-36 lg:pb-40">
+          <div className="mx-auto grid max-w-[1320px] gap-6 px-6 lg:grid-cols-12 lg:gap-8 lg:px-10">
+            {/* details card */}
+            <Reveal className="lg:col-span-5">
+              <div className="flex h-full flex-col bg-ink p-8 text-white lg:p-12">
+                <h2 className="title text-white text-4xl">
+                  Contact <b>us</b>
                 </h2>
 
-                <div className="mt-7 space-y-5">
-                  <a
-                    href="tel:+919150019689"
-                    className="group flex items-center gap-4 p-4 rounded-[12px] bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#DCE3EA] hover:border-[#2563EB]/50 transition-all"
-                  >
-                    <div className="w-11 h-11 rounded-[10px] bg-white border border-[#DCE3EA] group-hover:border-[#2563EB]/40 flex items-center justify-center shrink-0">
-                      <Phone className="w-5 h-5 text-[#315B7D] group-hover:text-[#2563EB] transition-colors" />
-                    </div>
-                    <div>
-                      <div className="text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[#315B7D]">
-                        Phone
-                      </div>
-                      <div className="text-[16px] sm:text-[17px] font-semibold text-[#0B2545] group-hover:text-[#2563EB] transition-colors mt-0.5">
-                        +91 91500 19689
-                      </div>
-                    </div>
-                  </a>
+                <ul className="mt-10 space-y-4">
+                  {[
+                    { k: 'Phone', val: PHONE_DISPLAY, href: PHONE_HREF, icon: Icon.phone },
+                    { k: 'Email', val: EMAIL, href: `mailto:${EMAIL}`, icon: Icon.mail },
+                  ].map((r) => (
+                    <li key={r.k}>
+                      <a
+                        href={r.href}
+                        className="group flex items-center gap-5 border border-white/15 p-5 transition-colors hover:border-signal hover:bg-white/[0.04]"
+                      >
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-signal transition-transform duration-500 group-hover:scale-110">
+                          <Svg d={r.icon} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="eyebrow block !text-[11px] text-white/50">{r.k}</span>
+                          <span className="block truncate text-xl font-medium tracking-tight">
+                            {r.val}
+                          </span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
 
-                  <a
-                    href="mailto:consult@drivvize.com"
-                    className="group flex items-center gap-4 p-4 rounded-[12px] bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#DCE3EA] hover:border-[#2563EB]/50 transition-all"
-                  >
-                    <div className="w-11 h-11 rounded-[10px] bg-white border border-[#DCE3EA] group-hover:border-[#2563EB]/40 flex items-center justify-center shrink-0">
-                      <Mail className="w-5 h-5 text-[#315B7D] group-hover:text-[#2563EB] transition-colors" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[#315B7D]">
-                        Email
-                      </div>
-                      <div className="text-[16px] sm:text-[17px] font-semibold text-[#0B2545] group-hover:text-[#2563EB] transition-colors mt-0.5 break-all">
-                        consult@drivvize.com
-                      </div>
-                    </div>
-                  </a>
-                </div>
-              </div>
-            </div>
+                <p className="mt-10 max-w-sm text-[15px] leading-relaxed text-white/60">
+                  Tell us about your project, product inquiry, or training requirements.
+                </p>
+                <a
+                  href={`mailto:${EMAIL}?subject=${encodeURIComponent(
+                    'Career inquiry / Resume submission'
+                  )}`}
+                  className="mt-6 inline-flex items-center gap-2 text-[13px] font-bold text-signal underline decoration-signal/40 underline-offset-4 transition-colors hover:decoration-signal"
+                >
+                  Looking for a career? Submit your resume
+                </a>
 
-            {/* RIGHT: Contact Us Form */}
-            <div className="lg:col-span-7">
-              <div className="relative overflow-hidden rounded-[18px] bg-white border border-[#DCE3EA] p-6 sm:p-8 lg:p-10 shadow-[0_16px_42px_-14px_rgba(11,37,69,0.11)]">
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-x-0 top-0 h-[3.5px] bg-gradient-to-r from-[#2563EB] via-[#06B6D4] to-[#0D9488]"
+                <Photo
+                  src={IMG.engineer}
+                  alt="Engineer working at a laptop"
+                  className="mt-10 aspect-[4/3] w-full lg:mt-auto"
+                  speed={0.05}
                 />
+              </div>
+            </Reveal>
 
-                <div className="mb-6">
-                  <h2 className="text-[22px] sm:text-[26px] font-bold text-[#0B2545]">
-                    Send Us a Message
-                  </h2>
-                  <p className="text-[14px] text-[#315B7D] mt-1">
-                    Fill in your details below and click Submit to notify our team.
-                  </p>
-                </div>
+            {/* form card */}
+            <Reveal className="lg:col-span-7" delay={120}>
+              <div className="relative bg-white p-8 shadow-2xl shadow-ink/10 ring-1 ring-ink/5 lg:p-14">
+                <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand via-sky to-signal" />
 
-                {successMsg && (
-                  <div
-                    role="status"
-                    className="mb-6 rounded-[12px] bg-[#ECFDF5] border border-[#A7F3D0] p-4 flex items-start gap-3 text-[#065F46]"
-                  >
-                    <CheckCircle2 className="w-5 h-5 text-[#0D9488] shrink-0 mt-0.5" />
-                    <div>
-                      <div className="font-bold text-[14.5px]">
-                        Message Sent Successfully
-                      </div>
-                      <p className="text-[13.5px] mt-0.5">{successMsg}</p>
-                    </div>
-                  </div>
-                )}
-
-                {errorMsg && (
-                  <div
-                    role="alert"
-                    className="mb-6 rounded-[12px] bg-[#FEF2F2] border border-[#FECACA] p-4 flex items-start gap-3 text-[#991B1B]"
-                  >
-                    <AlertCircle className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
-                    <div>
-                      <div className="font-bold text-[14.5px]">
-                        Unable to Submit
-                      </div>
-                      <p className="text-[13.5px] mt-0.5">{errorMsg}</p>
-                    </div>
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} noValidate className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    {/* First Name */}
-                    <div>
-                      <label
-                        htmlFor="firstName"
-                        className="block text-[13.5px] font-semibold text-[#0B2545] mb-1.5"
-                      >
-                        First Name <span className="text-[#DC2626]">*</span>
-                      </label>
-                      <div className="relative">
-                        <User className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          id="firstName"
-                          name="firstName"
-                          type="text"
-                          required
-                          autoComplete="given-name"
-                          value={form.firstName}
-                          onChange={handleChange}
-                          placeholder="Enter your first name"
-                          className="w-full pl-10 pr-4 py-3 text-[15px] rounded-[10px] border-[1.5px] border-[#DCE3EA] bg-[#F8FAFC] focus:bg-white text-[#0B2545] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/12 transition-all"
+                {done ? (
+                  <div className="flex min-h-[520px] flex-col items-start justify-center">
+                    <span className="mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-signal text-ink">
+                      <svg width="26" height="26" viewBox="0 0 12 12">
+                        <path
+                          d="M2 6.4l2.6 2.6L10 3.4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
                         />
-                      </div>
-                    </div>
-
-                    {/* Last Name */}
-                    <div>
-                      <label
-                        htmlFor="lastName"
-                        className="block text-[13.5px] font-semibold text-[#0B2545] mb-1.5"
+                      </svg>
+                    </span>
+                    <h2 className="title text-4xl">
+                      Thank you, <b>{v.first.trim()}.</b>
+                    </h2>
+                    <p className="mt-5 max-w-md text-[16px] leading-relaxed text-ink/65">
+                      Your email app has opened with your message ready to send to {EMAIL}. Just press
+                      send there. If nothing opened, write to us directly at{' '}
+                      <a
+                        href={`mailto:${EMAIL}`}
+                        className="font-semibold text-ink underline decoration-signal decoration-2 underline-offset-4"
                       >
-                        Last Name <span className="text-[#DC2626]">*</span>
-                      </label>
-                      <div className="relative">
-                        <User className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          id="lastName"
-                          name="lastName"
-                          type="text"
-                          required
-                          autoComplete="family-name"
-                          value={form.lastName}
-                          onChange={handleChange}
-                          placeholder="Enter your last name"
-                          className="w-full pl-10 pr-4 py-3 text-[15px] rounded-[10px] border-[1.5px] border-[#DCE3EA] bg-[#F8FAFC] focus:bg-white text-[#0B2545] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/12 transition-all"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    {/* Gmail ID */}
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-[13.5px] font-semibold text-[#0B2545] mb-1.5"
-                      >
-                        Gmail ID <span className="text-[#DC2626]">*</span>
-                      </label>
-                      <div className="relative">
-                        <Mail className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          id="email"
-                          name="email"
-                          type="email"
-                          required
-                          autoComplete="email"
-                          value={form.email}
-                          onChange={handleChange}
-                          placeholder="yourname@gmail.com"
-                          className="w-full pl-10 pr-4 py-3 text-[15px] rounded-[10px] border-[1.5px] border-[#DCE3EA] bg-[#F8FAFC] focus:bg-white text-[#0B2545] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/12 transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Phone No. */}
-                    <div>
-                      <label
-                        htmlFor="phone"
-                        className="block text-[13.5px] font-semibold text-[#0B2545] mb-1.5"
-                      >
-                        Phone No. <span className="text-[#DC2626]">*</span>
-                      </label>
-                      <div className="relative">
-                        <Phone className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          required
-                          autoComplete="tel"
-                          value={form.phone}
-                          onChange={handleChange}
-                          placeholder="+91 98765 43210"
-                          className="w-full pl-10 pr-4 py-3 text-[15px] rounded-[10px] border-[1.5px] border-[#DCE3EA] bg-[#F8FAFC] focus:bg-white text-[#0B2545] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/12 transition-all"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Company Name (Optional) */}
-                  <div>
-                    <label
-                      htmlFor="companyName"
-                      className="block text-[13.5px] font-semibold text-[#0B2545] mb-1.5"
-                    >
-                      Company Name{' '}
-                      <span className="text-[12px] font-normal text-[#64748B]">
-                        (Optional)
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <Building2 className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input
-                        id="companyName"
-                        name="companyName"
-                        type="text"
-                        autoComplete="organization"
-                        value={form.companyName}
-                        onChange={handleChange}
-                        placeholder="Enter your company name (optional)"
-                        className="w-full pl-10 pr-4 py-3 text-[15px] rounded-[10px] border-[1.5px] border-[#DCE3EA] bg-[#F8FAFC] focus:bg-white text-[#0B2545] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/12 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Message */}
-                  <div>
-                    <label
-                      htmlFor="message"
-                      className="block text-[13.5px] font-semibold text-[#0B2545] mb-1.5"
-                    >
-                      Message <span className="text-[#DC2626]">*</span>
-                    </label>
-                    <div className="relative">
-                      <MessageSquare className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-3.5 pointer-events-none" />
-                      <textarea
-                        id="message"
-                        name="message"
-                        rows={5}
-                        required
-                        value={form.message}
-                        onChange={handleChange}
-                        placeholder="Tell us about your project, product inquiry, or training requirements..."
-                        className="w-full pl-10 pr-4 py-3 text-[15px] rounded-[10px] border-[1.5px] border-[#DCE3EA] bg-[#F8FAFC] focus:bg-white text-[#0B2545] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/12 transition-all resize-y"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <div className="pt-2">
+                        {EMAIL}
+                      </a>
+                      .
+                    </p>
                     <button
-                      type="submit"
-                      disabled={submitting}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-[12px] bg-gradient-to-r from-[#2563EB] via-[#1D4ED8] to-[#06B6D4] bg-[length:180%_100%] bg-left hover:bg-right text-white text-[15px] font-semibold shadow-[0_10px_28px_-6px_rgba(37,99,235,0.52)] hover:shadow-[0_14px_34px_-6px_rgba(6,182,212,0.58)] disabled:opacity-65 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
+                      onClick={reset}
+                      className="mt-10 rounded-full border border-ink px-6 py-3 text-[14px] font-bold transition-colors hover:bg-ink hover:text-white"
                     >
-                      {submitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Sending Message...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Submit</span>
-                          <Send className="w-4 h-4" />
-                        </>
-                      )}
+                      Send another message
                     </button>
                   </div>
-                </form>
+                ) : (
+                  <form onSubmit={submit} noValidate>
+                    <h2 className="title text-4xl">
+                      Send Us a <b>Message</b>
+                    </h2>
+                    <p className="mb-10 mt-3 text-[15px] text-ink/60">
+                      Fill in your details below and click Submit to notify our team.
+                    </p>
+
+                    <div className="grid gap-x-10 sm:grid-cols-2">
+                      <Field
+                        id="first"
+                        label="First Name"
+                        icon={<Svg d={Icon.user} />}
+                        error={show('first')}
+                      >
+                        <input
+                          {...bind('first')}
+                          className={inputClass}
+                          placeholder="Enter your first name"
+                          autoComplete="given-name"
+                        />
+                      </Field>
+                      <Field
+                        id="last"
+                        label="Last Name"
+                        icon={<Svg d={Icon.user} />}
+                        error={show('last')}
+                      >
+                        <input
+                          {...bind('last')}
+                          className={inputClass}
+                          placeholder="Enter your last name"
+                          autoComplete="family-name"
+                        />
+                      </Field>
+                      <Field
+                        id="email"
+                        label="Gmail ID"
+                        icon={<Svg d={Icon.mail} />}
+                        error={show('email')}
+                      >
+                        <input
+                          {...bind('email')}
+                          type="email"
+                          className={inputClass}
+                          placeholder="yourname@gmail.com"
+                          autoComplete="email"
+                        />
+                      </Field>
+                      <Field
+                        id="phone"
+                        label="Phone No."
+                        icon={<Svg d={Icon.phone} />}
+                        error={show('phone')}
+                      >
+                        <input
+                          {...bind('phone')}
+                          type="tel"
+                          className={inputClass}
+                          placeholder="+91 98765 43210"
+                          autoComplete="tel"
+                        />
+                      </Field>
+                      <Field
+                        id="company"
+                        label="Company Name"
+                        optional
+                        icon={<Svg d={Icon.building} />}
+                        className="sm:col-span-2"
+                      >
+                        <input
+                          {...bind('company')}
+                          className={inputClass}
+                          placeholder="Enter your company name (optional)"
+                          autoComplete="organization"
+                        />
+                      </Field>
+                      <Field
+                        id="message"
+                        label="Message"
+                        icon={<Svg d={Icon.chat} />}
+                        error={show('message')}
+                        className="sm:col-span-2"
+                      >
+                        <textarea
+                          {...bind('message')}
+                          rows={5}
+                          className={`${inputClass} resize-none`}
+                          placeholder="Tell us about your project, product inquiry, or training requirements..."
+                        />
+                      </Field>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="group mt-4 inline-flex items-center gap-3 rounded-full bg-signal px-9 py-4 text-[15px] font-bold text-ink transition-transform hover:-translate-y-0.5 cursor-pointer"
+                    >
+                      Submit
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinejoin="round"
+                        className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                      >
+                        <path d="M21 3L3 10.5l7 3 3 7z" />
+                        <path d="M10 13.5L21 3" />
+                      </svg>
+                    </button>
+                  </form>
+                )}
               </div>
-            </div>
+            </Reveal>
           </div>
-        </div>
-      </AnimatedGradientBackground>
+        </section>
+      </main>
+      <Footer />
     </div>
   );
-};
+}
+
+export default ContactClient;

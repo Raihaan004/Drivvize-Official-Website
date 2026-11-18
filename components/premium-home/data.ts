@@ -26,6 +26,15 @@ export const IMG = {
   stage: img('photo-1587825140708-dfaf72ae4b04', 1400),
   audience: img('photo-1627931539006-d5c4677e05ea', 1000),
   road: img('photo-1670968982569-722c875727dc', 2200),
+  brake: img('photo-1696494561430-de087dd0bd69', 2200),
+  train: img('photo-1527295110-5145f6b148d0', 2200),
+  padlock: img('photo-1555529902-5261145633bf', 1400),
+  blueLock: img('photo-1757072600329-f38a321f3397', 1400),
+  servers: img('photo-1782094673136-5198a372980c', 1400),
+  code: img('photo-1515879218367-8466d910aaa4', 1400),
+  presenting: img('photo-1758691736722-cda1858056e0', 1600),
+  whiteboard: img('photo-1664382953518-4a664ab8a8c9', 1400),
+  meeting: img('photo-1758691736067-b309ee3ef7b9', 1400),
 }
 
 export type NavItem = {
@@ -36,20 +45,30 @@ export type NavItem = {
 }
 
 export const NAV: NavItem[] = [
+  { label: 'Home', path: '/' },
   { label: 'Products', path: '/products' },
   {
     label: 'Services',
     path: '/services',
     children: [
-      { label: 'Functional Safety Services', path: '/services#functional-safety' },
-      { label: 'Cybersecurity Services', path: '/services#cybersecurity' },
-      { label: 'Trainings', path: '/services#trainings' },
+      { label: 'Functional Safety Services', path: '/services#functional-safety', anchor: 'functional-safety' },
+      { label: 'Cybersecurity Services', path: '/services#cybersecurity', anchor: 'cybersecurity' },
+      { label: 'Trainings', path: '/services#trainings', anchor: 'trainings' },
     ],
   },
   { label: 'Clients', path: '/#proof', anchor: 'proof' },
   { label: 'Case Studies', path: '/casestudies' },
-  { label: 'Blog', path: '/blog' },
-  { label: 'Learn', path: '/learn' },
+  {
+    label: 'Learn',
+    path: '/learn',
+    children: [
+      { label: 'Blog', path: '/blog' },
+      { label: 'Events', path: '/events' },
+      { label: 'Knowledge Mine', path: '/learn#knowledge', anchor: 'knowledge' },
+      { label: 'Videos', path: '/learn#videos', anchor: 'videos' },
+      { label: 'Downloads', path: '/learn#downloads', anchor: 'downloads' },
+    ],
+  },
   { label: 'Scope Checker', path: '/scope-checker' },
 ]
 
