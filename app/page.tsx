@@ -8,6 +8,7 @@ import Systems from '@/components/premium-home/Systems';
 import Recognition from '@/components/premium-home/Recognition';
 import Founders from '@/components/premium-home/Founders';
 import Footer from '@/components/premium-home/Footer';
+import UpcomingEventToast from '@/components/events/UpcomingEventToast';
 
 export default function Home() {
   return (
@@ -24,6 +25,7 @@ export default function Home() {
         <Founders />
       </main>
       <Footer />
+      <UpcomingEventToast />
     </>
   );
 }

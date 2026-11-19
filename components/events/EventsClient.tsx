@@ -118,7 +118,7 @@ function Featured({ e }: { e: DrivvizeEvent }) {
   const c = useCountdown(e.start);
   return (
     <Reveal className="mb-20">
-      <div className="relative isolate overflow-hidden bg-ink text-white">
+      <div id={e.id} className="relative isolate overflow-hidden bg-ink text-white scroll-mt-28">
         <img src={e.image} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(10,16,24,0.95),rgba(10,16,24,0.7)_55%,rgba(10,16,24,0.5))]" />
         <div className="grid gap-12 p-8 sm:p-12 lg:grid-cols-12 lg:p-16">

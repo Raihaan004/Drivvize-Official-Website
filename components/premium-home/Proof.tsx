@@ -43,17 +43,17 @@ export default function Proof() {
           {INDUSTRIES.map((x, i) => (
             <div
               key={x.name}
-              className="group relative h-64 overflow-hidden bg-paper lg:h-auto lg:flex-[1_1_0%] lg:transition-[flex-grow,flex] lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:hover:flex-[1.7_1_0%]"
+              className="group relative h-64 overflow-hidden bg-paper lg:h-auto lg:flex-1 lg:transition-all lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:hover:flex-[1.7]"
             >
               <Reveal delay={i * 120} className="relative h-full w-full">
                 <img
                   src={x.image}
                   alt={x.name}
                   loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] ease-out group-hover:scale-105"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
-                <p className="absolute bottom-6 left-7 text-3xl font-light tracking-tight text-white">
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent transition-opacity duration-700 group-hover:opacity-90" />
+                <p className="absolute bottom-6 left-7 text-3xl font-light tracking-tight text-white transition-transform duration-500 ease-out group-hover:-translate-y-1">
                   {x.name}
                 </p>
                 <span className="absolute bottom-0 left-0 h-[3px] w-0 bg-signal transition-all duration-700 ease-out group-hover:w-full" />
