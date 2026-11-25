@@ -1,7 +1,7 @@
 import { IMG } from '@/components/premium-home/data'
 
 export const FSF_URL = 'https://www.functionalsafetyfirst.com/'
-export const YOUTUBE_URL = 'https://www.youtube.com/results?search_query=Drivvize'
+export const YOUTUBE_URL = 'https://www.youtube.com/@functionalsafety7935'
 
 export type Block = { t: 'p'; x: string } | { t: 'h'; x: string } | { t: 'ul'; x: string[] }
 export type Post = {
@@ -146,10 +146,30 @@ export const KNOWLEDGE = [
 ]
 
 export const VIDEOS = [
-  { title: 'Introduction to Functional Safety (FuSa)', tag: 'Training', image: IMG.presenting },
-  { title: 'ISO 26262 Part-4 Systems Safety', tag: 'Training', image: IMG.meeting },
-  { title: 'How to develop an SEooC', tag: 'Training', image: IMG.whiteboard },
-  { title: 'Introduction to EU Cyber Resilience Act', tag: 'Cybersecurity', image: IMG.stage },
+  {
+    title: 'Automotive Functional Safety ISO26262 Systems Part 4 Webinar',
+    tag: 'ISO 26262 Part 4',
+    url: 'https://www.youtube.com/watch?v=ZXzJEk5Vn8k',
+    image: 'https://i.ytimg.com/vi/ZXzJEk5Vn8k/hqdefault.jpg',
+  },
+  {
+    title: 'Drivvize FuSa Connect 2',
+    tag: 'FuSa Connect',
+    url: 'https://youtu.be/F3v5mv1oikA?si=zPUJLdgPt42vVgVD',
+    image: 'https://i.ytimg.com/vi/F3v5mv1oikA/hqdefault.jpg',
+  },
+  {
+    title: 'FMEDA Random HW Fault Classification',
+    tag: 'Hardware Safety',
+    url: 'https://youtu.be/TwOa3HIGjWI?si=JqwbKpDnkh-FlLs0',
+    image: 'https://i.ytimg.com/vi/TwOa3HIGjWI/hqdefault.jpg',
+  },
+  {
+    title: 'Flow of Functional Safety Requirements',
+    tag: 'Functional Safety',
+    url: 'https://youtu.be/7nmI11ORzyY?si=ElLRzcRk0edqU3Rj',
+    image: 'https://i.ytimg.com/vi/7nmI11ORzyY/hqdefault.jpg',
+  },
 ]
 
 /** Set `file` (e.g. '/downloads/iso-26262-kit.pdf' in /public) once a document exists. */

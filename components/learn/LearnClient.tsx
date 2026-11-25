@@ -196,12 +196,12 @@ export function LearnClient({
 
             <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2">
               {VIDEOS.map((v, i) => (
-                <Reveal key={v.title} delay={(i % 2) * 120}>
-                  <a href={YOUTUBE_URL} target="_blank" rel="noreferrer" className="group block">
+                <Reveal key={v.url} delay={(i % 2) * 120}>
+                  <a href={v.url} target="_blank" rel="noopener noreferrer" className="group block">
                     <div className="relative aspect-video overflow-hidden bg-ink">
                       <img
                         src={v.image}
-                        alt=""
+                        alt={v.title}
                         loading="lazy"
                         className="h-full w-full object-cover opacity-90 transition-all duration-[1600ms] group-hover:scale-105 group-hover:opacity-100"
                       />
