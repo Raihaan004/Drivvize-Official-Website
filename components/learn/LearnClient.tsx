@@ -5,16 +5,16 @@ import Link from 'next/link';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
 import { IMG } from '@/components/premium-home/data';
-import { CountUp, Reveal } from '@/components/premium-home/hooks';
+import { Reveal } from '@/components/premium-home/hooks';
 import {
-  DOWNLOADS,
-  FSF_URL,
-  KNOWLEDGE,
   POSTS,
   VIDEOS,
   YOUTUBE_URL,
 } from './learn-data';
 import PostCard from './PostCard';
+import { KnowledgeMineSection } from './KnowledgeMineSection';
+import { DownloadsSection } from './DownloadsSection';
+import type { KnowledgeArticle } from '@/lib/functionalsafetyfirst';
 
 const TABS = [
   { id: 'blog', label: 'Blog' },
@@ -29,106 +29,11 @@ const Arrow = ({ className = '' }: { className?: string }) => (
   </svg>
 );
 
-function DownloadCard({ item, i }: { item: (typeof DOWNLOADS)[number]; i: number }) {
-  const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [done, setDone] = useState(false);
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
-      setError('Please enter a valid email address');
-      return;
-    }
-    if (item.file) {
-      const a = document.createElement('a');
-      a.href = item.file;
-      a.download = '';
-      a.click();
-    } else {
-      const subject = `Download request: ${item.title}`;
-      const body = `Please share "${item.title}" with me.\n\nMy email: ${email.trim()}`;
-      window.location.href = `mailto:consult@drivvize.com?subject=${encodeURIComponent(
-        subject
-      )}&body=${encodeURIComponent(body)}`;
-    }
-    setDone(true);
-  };
-
-  return (
-    <Reveal delay={(i % 2) * 100}>
-      <article className="group flex h-full flex-col bg-white ring-1 ring-ink/5 transition-shadow duration-500 hover:shadow-2xl hover:shadow-ink/10">
-        <div className="relative aspect-[16/9] overflow-hidden bg-deep">
-          <img
-            src={item.image}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-[1600ms] group-hover:scale-110"
-          />
-          <span className="absolute left-4 top-4 rounded-full bg-signal px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-ink">
-            PDF
-          </span>
-        </div>
-        <div className="flex flex-1 flex-col p-7">
-          <h3 className="text-2xl font-light tracking-tight">{item.title}</h3>
-          <p className="mt-2 text-[15px] text-ink/55">{item.note}</p>
-
-          <div className="mt-auto pt-7">
-            {done ? (
-              <p className="text-[14px] font-semibold leading-relaxed text-deep">
-                {item.file
-                  ? 'Your download has started.'
-                  : 'Your email app has opened with your request. Press send and we will share it with you.'}
-              </p>
-            ) : open ? (
-              <form onSubmit={submit} noValidate>
-                <label htmlFor={`dl-${i}`} className="sr-only">
-                  Email id
-                </label>
-                <div
-                  className={`flex items-center gap-2 border-b ${
-                    error ? 'border-red-500' : 'border-ink/25 focus-within:border-ink'
-                  }`}
-                >
-                  <input
-                    id={`dl-${i}`}
-                    type="email"
-                    autoFocus
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setError('');
-                    }}
-                    placeholder="Enter your email id"
-                    className="w-full bg-transparent py-3 text-[15px] outline-none placeholder:text-ink/30"
-                  />
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded-full bg-ink px-5 py-2 text-[13px] font-bold text-white transition-colors hover:bg-deep"
-                  >
-                    Get access
-                  </button>
-                </div>
-                <p className="min-h-5 pt-1.5 text-xs font-medium text-red-600">{error}</p>
-              </form>
-            ) : (
-              <button
-                onClick={() => setOpen(true)}
-                className="group/b inline-flex items-center gap-3 text-[13px] font-bold"
-              >
-                Get access
-                <Arrow className="transition-transform group-hover/b:translate-x-1.5" />
-              </button>
-            )}
-          </div>
-        </div>
-      </article>
-    </Reveal>
-  );
-}
-
-export function LearnClient() {
+export function LearnClient({
+  initialKnowledge = [],
+}: {
+  initialKnowledge?: KnowledgeArticle[];
+}) {
   const [active, setActive] = useState(TABS[0].id);
 
   useEffect(() => {
@@ -260,54 +165,7 @@ export function LearnClient() {
         </section>
 
         {/* knowledge mine */}
-        <section id="knowledge" className="scroll-mt-32 bg-ink py-28 text-white lg:py-40">
-          <div className="mx-auto max-w-[1320px] px-6 lg:px-10">
-            <div className="mb-16 grid gap-10 lg:mb-24 lg:grid-cols-12 lg:items-end">
-              <Reveal className="lg:col-span-7">
-                <p className="eyebrow mb-6 text-signal">Our knowledge mine</p>
-                <h2 className="title text-[clamp(2.4rem,5.4vw,4.8rem)]">
-                  Read a paragraph. <b>Go deeper.</b>
-                </h2>
-                <p className="mt-8 max-w-xl text-[17px] leading-relaxed text-white/60">
-                  A peek at articles from Functional Safety First. Read a paragraph here, then
-                  continue on functionalsafetyfirst.com for the entire content.
-                </p>
-              </Reveal>
-              <Reveal className="lg:col-span-5 lg:text-right" delay={120}>
-                <div className="title text-[clamp(4rem,8vw,7rem)] !font-extralight leading-none text-signal">
-                  <CountUp to={400} suffix="K+" />
-                </div>
-                <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-white/50">
-                  viewers till now
-                </p>
-              </Reveal>
-            </div>
-
-            <div className="grid gap-px bg-white/10 md:grid-cols-2">
-              {KNOWLEDGE.map((k, i) => (
-                <Reveal key={k.title} delay={(i % 2) * 100} className="bg-ink">
-                  <a
-                    href={FSF_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group relative block h-full p-8 text-white transition-colors hover:bg-white/[0.04] lg:p-12"
-                  >
-                    <p className="mb-5 text-sm font-bold tabular-nums text-signal">0{i + 1}</p>
-                    <h3 className="text-[clamp(1.6rem,2.4vw,2.2rem)] font-light leading-tight tracking-tight text-white">
-                      {k.title}
-                    </h3>
-                    <p className="mt-5 max-w-lg text-[16px] leading-[1.75] text-white/60">{k.para}</p>
-                    <span className="mt-8 inline-flex items-center gap-3 text-[13px] font-bold text-signal">
-                      Read the full article on functionalsafetyfirst.com
-                      <Arrow className="transition-transform group-hover:translate-x-1.5" />
-                    </span>
-                    <span className="absolute bottom-0 left-0 h-[3px] w-0 bg-signal transition-all duration-700 group-hover:w-full" />
-                  </a>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
+        <KnowledgeMineSection initialArticles={initialKnowledge} />
 
         {/* videos */}
         <section id="videos" className="scroll-mt-32 py-28 lg:py-40">
@@ -372,24 +230,7 @@ export function LearnClient() {
         </section>
 
         {/* downloads */}
-        <section id="downloads" className="scroll-mt-32 bg-paper py-28 lg:py-40">
-          <div className="mx-auto max-w-[1320px] px-6 lg:px-10">
-            <Reveal className="mb-16 lg:mb-20">
-              <p className="eyebrow mb-6 text-brand">Downloads</p>
-              <h2 className="title text-[clamp(2.4rem,5.4vw,4.8rem)]">
-                Take it <b>with you.</b>
-              </h2>
-              <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-ink/60">
-                Enter your email id to get access to any of our downloads.
-              </p>
-            </Reveal>
-            <div className="grid gap-6 md:grid-cols-2">
-              {DOWNLOADS.map((d, i) => (
-                <DownloadCard key={d.title} item={d} i={i} />
-              ))}
-            </div>
-          </div>
-        </section>
+        <DownloadsSection />
       </main>
       <Footer />
     </div>

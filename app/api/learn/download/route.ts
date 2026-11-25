@@ -1,4 +1,4 @@
-import { NextResponse, after } from 'next/server';
+import { NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
 import { db } from '@/lib/db';
@@ -112,26 +112,24 @@ export async function POST(request: Request) {
     console.error('Failed to record publication request in Neon Postgres:', dbError);
   }
 
-  // 2. Dispatch email asynchronously in the background so the user gets an instant response
-  after(async () => {
-    try {
-      const emailResult = await sendResourcePdfEmail({
-        toEmail: email,
-        resource,
-        filePath,
-      });
-
-      if (!emailResult.success) {
-        console.error('Async PDF email delivery failed:', emailResult.error);
-      } else {
-        console.log(`Successfully dispatched ${resource.fileName} to ${email}`);
-      }
-    } catch (backgroundError) {
-      console.error('Unexpected error during async email sending:', backgroundError);
-    }
+  // 2. Dispatch email with the PDF attachment and verify delivery before confirming success
+  const emailResult = await sendResourcePdfEmail({
+    toEmail: email,
+    resource,
+    filePath,
   });
 
-  // 3. Respond immediately — no waiting for SMTP TLS handshake or multi-MB upload!
+  if (!emailResult.success) {
+    console.error('PDF email delivery failed:', emailResult.error);
+    return NextResponse.json(
+      {
+        error:
+          'Unable to send the email right now. Please try again in a moment or contact consult@drivvize.com.',
+      },
+      { status: 502 },
+    );
+  }
+
   // No direct download URL is returned to strictly enforce email-only delivery.
   return NextResponse.json({
     success: true,

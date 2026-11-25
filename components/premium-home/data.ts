@@ -70,7 +70,7 @@ export const NAV: NavItem[] = [
       { label: 'FAQs', path: '/faqs' },
     ],
   },
-  { label: 'Scope Checker', path: '/scope-checker' },
+  { label: 'EU CRA Scope Checker', path: '/scope-checker' },
 ]
 
 export const HERO_SLIDES = [
