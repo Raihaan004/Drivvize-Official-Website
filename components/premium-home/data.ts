@@ -41,6 +41,7 @@ export type NavItem = {
   label: string
   path: string
   anchor?: string
+  hidden?: boolean
   children?: { label: string; path: string; anchor?: string }[]
 }
 
@@ -56,7 +57,7 @@ export const NAV: NavItem[] = [
       { label: 'Trainings', path: '/services#trainings', anchor: 'trainings' },
     ],
   },
-  { label: 'Clients', path: '/#proof', anchor: 'proof' },
+  { label: 'Clients', path: '/#proof', anchor: 'proof', hidden: true },
   { label: 'Case Studies', path: '/casestudies' },
   {
     label: 'Learn',

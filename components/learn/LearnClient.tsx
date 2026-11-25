@@ -7,10 +7,10 @@ import Footer from '@/components/premium-home/Footer';
 import { IMG } from '@/components/premium-home/data';
 import { Reveal } from '@/components/premium-home/hooks';
 import {
-  POSTS,
   VIDEOS,
   YOUTUBE_URL,
 } from './learn-data';
+import { mergeBlogCards, type DbBlogRow } from '@/lib/blogConstants';
 import PostCard from './PostCard';
 import { KnowledgeMineSection } from './KnowledgeMineSection';
 import { DownloadsSection } from './DownloadsSection';
@@ -31,9 +31,12 @@ const Arrow = ({ className = '' }: { className?: string }) => (
 
 export function LearnClient({
   initialKnowledge = [],
+  initialBlogs = [],
 }: {
   initialKnowledge?: KnowledgeArticle[];
+  initialBlogs?: DbBlogRow[];
 }) {
+  const latestArticles = mergeBlogCards(initialBlogs).slice(0, 3);
   const [active, setActive] = useState(TABS[0].id);
 
   useEffect(() => {
@@ -155,8 +158,8 @@ export function LearnClient({
               </Link>
             </Reveal>
             <div className="grid gap-x-8 gap-y-14 md:grid-cols-3">
-              {POSTS.slice(0, 3).map((p, i) => (
-                <Reveal key={p.slug} delay={i * 110}>
+              {latestArticles.map((p, i) => (
+                <Reveal key={p.slug} delay={i * 110} className="h-full">
                   <PostCard post={p} />
                 </Reveal>
               ))}

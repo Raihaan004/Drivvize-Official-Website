@@ -37,6 +37,9 @@ export const blogs = pgTable('blogs', {
   category: varchar('category', { length: 100 }).default('Functional Safety').notNull(),
   author: varchar('author', { length: 100 }).default('Drivvize Engineering').notNull(),
   readTime: varchar('read_time', { length: 50 }).default('5 min read'),
+  documentName: varchar('document_name', { length: 255 }),
+  documentSize: varchar('document_size', { length: 60 }),
+  documentUrl: text('document_url'),
   isPublished: boolean('is_published').default(false).notNull(),
   views: integer('views').default(0).notNull(),
   publishedAt: timestamp('published_at', { withTimezone: true }),
@@ -46,3 +49,13 @@ export const blogs = pgTable('blogs', {
 
 export type Blog = typeof blogs.$inferSelect;
 export type NewBlog = typeof blogs.$inferInsert;
+
+export const blogEngagements = pgTable('blog_engagements', {
+  slug: varchar('slug', { length: 255 }).primaryKey(),
+  likes: integer('likes').default(0).notNull(),
+  ratingSum: integer('rating_sum').default(0).notNull(),
+  ratingCount: integer('rating_count').default(0).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type BlogEngagement = typeof blogEngagements.$inferSelect;

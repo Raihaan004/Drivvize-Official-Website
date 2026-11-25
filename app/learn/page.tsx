@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import { LearnClient } from '@/components/learn/LearnClient';
 import { getCachedFsfArticles } from '@/lib/functionalsafetyfirst';
+import { getPublishedBlogRows } from '@/lib/blogQueries';
 
 export const metadata: Metadata = {
   title: 'Learn & Publications | Whitepapers, ISO 26262 SEooC & EU CRA Guides | Drivvize',
@@ -9,7 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function LearnPage() {
-  const initialKnowledge = await getCachedFsfArticles(4);
+  await connection();
+  const [initialKnowledge, initialBlogs] = await Promise.all([
+    getCachedFsfArticles(4),
+    getPublishedBlogRows(3),
+  ]);
 
-  return <LearnClient initialKnowledge={initialKnowledge} />;
+  return <LearnClient initialKnowledge={initialKnowledge} initialBlogs={initialBlogs} />;
 }

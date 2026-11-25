@@ -507,3 +507,16 @@
     transform: translateY(100%);
   }
 }
+
+@media print {
+  .blog-print-header {
+    background: #ffffff !important;
+    color: #0a1018 !important;
+    border-bottom: 1px solid #e3e6eb;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -92,7 +92,7 @@ export default function Nav() {
         </Link>
 
         <nav className="hidden items-center gap-5 xl:gap-7 lg:flex" aria-label="Primary">
-          {NAV.map((item) => {
+          {NAV.filter((item) => !item.hidden).map((item) => {
             const isBaseActive = pathname === item.path;
             const isChildActive = Boolean(
               item.children?.some((c) => {
@@ -203,7 +203,7 @@ export default function Nav() {
       {open && (
         <div className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-5rem)] overflow-y-auto border-t border-line bg-white px-6 pb-12 pt-2 shadow-2xl lg:hidden">
           <div className="flex flex-col divide-y divide-line">
-            {NAV.map((item) => (
+            {NAV.filter((item) => !item.hidden).map((item) => (
               <div key={item.label} className="py-3.5">
                 <Link
                   href={item.path}

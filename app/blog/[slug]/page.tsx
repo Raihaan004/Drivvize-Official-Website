@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import { eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { blogs } from '@/lib/db/schema';
 import { IMG } from '@/components/premium-home/data';
 import { POSTS, readMinutes } from '@/components/learn/learn-data';
+import { mergeBlogCards } from '@/lib/blogConstants';
+import { getBlogEngagement, getPublishedBlogRows } from '@/lib/blogQueries';
 import {
   BlogPostClient,
   type BlogArticleData,
@@ -12,6 +15,14 @@ import {
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+function toOgImageList(image: string | null | undefined): string[] {
+  if (!image) return [];
+  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('/')) {
+    return [image];
+  }
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -33,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         openGraph: {
           title: blog.title,
           description: blog.excerpt || '',
-          images: blog.coverImage ? [blog.coverImage] : [],
+          images: toOgImageList(blog.coverImage),
         },
       };
     }
@@ -58,6 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Props) {
+  await connection();
   const { slug } = await params;
 
   let article: BlogArticleData | null = null;
@@ -81,8 +93,12 @@ export default async function BlogPostPage({ params }: Props) {
         category: result.category || 'Functional Safety',
         excerpt: result.excerpt || '',
         image: result.coverImage || IMG.aerialRoad,
-        author: result.author || 'Drivvize',
-        readTimeLabel: result.readTime || '4 min read',
+        author: result.author || 'Drivvize Engineering',
+        publishedAt: (result.publishedAt ?? result.createdAt).toISOString(),
+        readTimeLabel: result.readTime || '5 min read',
+        documentName: result.documentName,
+        documentSize: result.documentSize,
+        documentUrl: result.documentUrl,
         htmlContent: result.content,
       };
     }
@@ -99,7 +115,8 @@ export default async function BlogPostPage({ params }: Props) {
         category: starter.category,
         excerpt: starter.excerpt,
         image: starter.image,
-        author: 'Drivvize',
+        author: 'Drivvize Engineering',
+        publishedAt: null,
         readTimeLabel: `${readMinutes(starter)} min read`,
         blocks: starter.blocks,
       };
@@ -110,5 +127,23 @@ export default async function BlogPostPage({ params }: Props) {
     notFound();
   }
 
-  return <BlogPostClient post={article} />;
+  const [dbRows, engagement] = await Promise.all([
+    getPublishedBlogRows(12),
+    getBlogEngagement(article.slug),
+  ]);
+  const relatedPosts = mergeBlogCards(dbRows)
+    .filter((p) => p.slug !== article.slug)
+    .sort(
+      (a, b) =>
+        Number(b.category === article.category) - Number(a.category === article.category),
+    )
+    .slice(0, 3);
+
+  return (
+    <BlogPostClient
+      post={article}
+      relatedPosts={relatedPosts}
+      initialEngagement={engagement}
+    />
+  );
 }

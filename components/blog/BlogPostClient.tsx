@@ -5,9 +5,16 @@ import Link from 'next/link';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
 import { Reveal } from '@/components/premium-home/hooks';
+import { formatBlogDate } from '@/lib/blogConstants';
+import type { BlogEngagementStats } from '@/lib/blogQueries';
 import { POSTS, readMinutes, type Block, type Post } from '@/components/learn/learn-data';
 import PostCard, { type PostCardItem } from '@/components/learn/PostCard';
 import { ArticleContent } from './ArticleContent';
+import {
+  BlogDocumentCard,
+  BlogShareAndLikeBar,
+  BlogStarRating,
+} from './BlogInteractions';
 
 export interface BlogArticleData {
   slug: string;
@@ -16,7 +23,11 @@ export interface BlogArticleData {
   excerpt: string;
   image: string;
   author: string;
+  publishedAt?: string | null;
   readTimeLabel: string;
+  documentName?: string | null;
+  documentSize?: string | null;
+  documentUrl?: string | null;
   blocks?: Block[];
   htmlContent?: string;
 }
@@ -24,9 +35,11 @@ export interface BlogArticleData {
 export function BlogPostClient({
   post,
   relatedPosts,
+  initialEngagement,
 }: {
   post: BlogArticleData;
   relatedPosts?: PostCardItem[];
+  initialEngagement?: BlogEngagementStats;
 }) {
   const [progress, setProgress] = useState(0);
 
@@ -46,36 +59,40 @@ export function BlogPostClient({
       : POSTS.filter((p) => p.slug !== post.slug)
           .sort(
             (a, b) =>
-              Number(b.category === post.category) - Number(a.category === post.category)
+              Number(b.category === post.category) - Number(a.category === post.category),
           )
           .slice(0, 3);
 
   let firstPara = true;
+  const engagement = initialEngagement ?? { likes: 0, ratingSum: 0, ratingCount: 0 };
 
   return (
     <div className="bg-white text-ink selection:bg-signal selection:text-ink">
       {/* Reading progress bar */}
-      <div className="fixed inset-x-0 top-0 z-[60] h-[3px] bg-transparent pointer-events-none">
+      <div className="print:hidden pointer-events-none fixed inset-x-0 top-0 z-[60] h-[3px] bg-transparent">
         <div
           className="h-full origin-left bg-signal transition-transform duration-75"
           style={{ transform: `scaleX(${progress})` }}
         />
       </div>
 
-      <Nav />
+      <div className="print:hidden">
+        <Nav />
+      </div>
+
       <main id="main-content">
-        <article>
-          <header className="relative isolate overflow-hidden bg-ink text-white">
+        <article className="blog-printable">
+          <header className="blog-print-header relative isolate overflow-hidden bg-ink text-white">
             <img
               src={post.image}
-              alt=""
-              className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
+              alt={post.title}
+              className="kenburns print:hidden absolute inset-0 -z-20 h-full w-full object-cover"
             />
-            <div className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(10,16,24,0.92),rgba(10,16,24,0.5)_60%,rgba(10,16,24,0.6))]" />
-            <div className="mx-auto max-w-[980px] px-6 pb-20 pt-44 lg:px-10 lg:pb-28 lg:pt-56">
+            <div className="print:hidden absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(10,16,24,0.92),rgba(10,16,24,0.5)_60%,rgba(10,16,24,0.6))]" />
+            <div className="mx-auto max-w-[980px] px-6 pb-20 pt-44 print:px-0 print:pb-8 print:pt-4 lg:px-10 lg:pb-28 lg:pt-56">
               <Link
                 href="/blog"
-                className="fade-up mb-10 inline-flex items-center gap-3 text-[13px] font-bold text-white/70 transition-colors hover:text-white"
+                className="fade-up print:hidden mb-10 inline-flex items-center gap-3 text-[13px] font-bold text-white/70 transition-colors hover:text-white"
               >
                 <svg width="18" height="10" viewBox="0 0 18 10" className="rotate-180">
                   <path
@@ -88,27 +105,36 @@ export function BlogPostClient({
                 All articles
               </Link>
               <p
-                className="eyebrow fade-up mb-6 text-signal"
+                className="eyebrow fade-up mb-6 text-signal print:text-ink"
                 style={{ animationDelay: '0.15s' }}
               >
                 {post.category} · {post.readTimeLabel}
               </p>
               <h1
-                className="title fade-up text-[clamp(2.2rem,5vw,4.4rem)] text-white"
+                className="title fade-up text-[clamp(2.2rem,5vw,4.4rem)] text-white print:text-3xl print:text-ink"
                 style={{ animationDelay: '0.3s' }}
               >
                 {post.title}
               </h1>
               <p
-                className="fade-up mt-8 text-sm font-semibold text-white/60"
+                className="fade-up mt-8 text-sm font-semibold text-white/60 print:mt-4 print:text-ink/70"
                 style={{ animationDelay: '0.5s' }}
               >
                 By {post.author}
+                {formatBlogDate(post.publishedAt) ? (
+                  <> &middot; {formatBlogDate(post.publishedAt)}</>
+                ) : null}
               </p>
             </div>
           </header>
 
-          <div className="mx-auto max-w-[760px] px-6 py-20 lg:py-28">
+          <div className="mx-auto max-w-[760px] px-6 py-16 print:max-w-none print:px-0 print:py-6 lg:py-24">
+            <BlogStarRating
+              slug={post.slug}
+              initialRatingSum={engagement.ratingSum}
+              initialRatingCount={engagement.ratingCount}
+            />
+
             {post.excerpt && (
               <Reveal>
                 <p className="title mb-14 border-l-[3px] border-signal pl-6 text-[clamp(1.25rem,2vw,1.6rem)] !leading-[1.5] text-ink/65">
@@ -167,7 +193,19 @@ export function BlogPostClient({
               </Reveal>
             ) : null}
 
-            <Reveal className="mt-16 flex flex-wrap items-center justify-between gap-6 border-t border-ink/10 pt-10">
+            <BlogDocumentCard
+              documentName={post.documentName}
+              documentSize={post.documentSize}
+              documentUrl={post.documentUrl}
+            />
+
+            <BlogShareAndLikeBar
+              slug={post.slug}
+              title={post.title}
+              initialLikes={engagement.likes}
+            />
+
+            <Reveal className="print:hidden mt-14 flex flex-wrap items-center justify-between gap-6 border-t border-ink/10 pt-10">
               <p className="max-w-xs text-[15px] text-ink/60">
                 Have a question about your own program?
               </p>
@@ -182,7 +220,7 @@ export function BlogPostClient({
         </article>
 
         {/* Keep reading */}
-        <section className="bg-paper py-24 lg:py-32">
+        <section className="print:hidden bg-paper py-24 lg:py-32">
           <div className="mx-auto max-w-[1320px] px-6 lg:px-10">
             <Reveal className="mb-14 flex items-center gap-4">
               <p className="eyebrow text-brand">Keep reading</p>
@@ -190,7 +228,7 @@ export function BlogPostClient({
             </Reveal>
             <div className="grid gap-x-8 gap-y-14 md:grid-cols-3">
               {related.map((p, i) => (
-                <Reveal key={p.slug} delay={i * 100}>
+                <Reveal key={p.slug} delay={i * 100} className="h-full">
                   <PostCard post={p} />
                 </Reveal>
               ))}
@@ -198,7 +236,10 @@ export function BlogPostClient({
           </div>
         </section>
       </main>
-      <Footer />
+
+      <div className="print:hidden">
+        <Footer />
+      </div>
     </div>
   );
 }
@@ -210,9 +251,8 @@ export function fromStaticPost(p: Post): BlogArticleData {
     category: p.category,
     excerpt: p.excerpt,
     image: p.image,
-    author: 'Drivvize',
+    author: 'Drivvize Engineering',
     readTimeLabel: `${readMinutes(p)} min read`,
     blocks: p.blocks,
   };
 }
-
