@@ -602,3 +602,25 @@
   text-decoration-color: #ffcc00;
   text-underline-offset: 4px;
 }
+.article-rich-html figure {
+  margin: 1.75rem 0;
+}
+.article-rich-html img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  border: 1px solid #e3e6eb;
+  margin: 1.5rem 0;
+}
+.article-rich-html figure img {
+  margin: 0;
+}
+.article-rich-html figcaption {
+  margin-top: 0.55rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: rgba(10, 16, 24, 0.55);
+}

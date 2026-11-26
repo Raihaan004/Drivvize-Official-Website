@@ -94,61 +94,71 @@ export function BlogListClient({ initialBlogs = [] }: { initialBlogs?: DbBlogRow
         {/* articles */}
         <section className="py-24 lg:py-32">
           <div className="mx-auto max-w-[1320px] px-6 lg:px-10">
-            <div className="mb-14 flex flex-col gap-5 border-b border-ink/10 pb-6 lg:flex-row lg:items-center lg:justify-between">
-              <div
-                className="flex flex-wrap items-center gap-2"
-                role="tablist"
-                aria-label="Filter articles by category"
-              >
-                {filters.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeCategory === category}
-                    onClick={() => setActiveCategory(category)}
-                    className={`cursor-pointer rounded-full px-5 py-2.5 text-[13px] font-bold transition-colors ${
-                      activeCategory === category
-                        ? 'bg-ink text-white'
-                        : 'text-ink/55 hover:bg-paper hover:text-ink'
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="relative min-w-[240px] flex-1 sm:flex-initial">
-                  <svg
-                    className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                  <input
-                    type="search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search articles or author..."
-                    aria-label="Search articles"
-                    className="w-full rounded-full border border-ink/15 bg-paper py-2 pl-10 pr-4 text-[13px] text-ink placeholder:text-ink/40 focus:border-ink focus:bg-white focus:outline-none"
-                  />
+            {allPosts.length > 0 && (
+              <div className="mb-14 flex flex-col gap-5 border-b border-ink/10 pb-6 lg:flex-row lg:items-center lg:justify-between">
+                <div
+                  className="flex flex-wrap items-center gap-2"
+                  role="tablist"
+                  aria-label="Filter articles by category"
+                >
+                  {filters.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeCategory === category}
+                      onClick={() => setActiveCategory(category)}
+                      className={`cursor-pointer rounded-full px-5 py-2.5 text-[13px] font-bold transition-colors ${
+                        activeCategory === category
+                          ? 'bg-ink text-white'
+                          : 'text-ink/55 hover:bg-paper hover:text-ink'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
                 </div>
-                <span className="text-xs font-bold uppercase tracking-[0.14em] text-ink/40">
-                  {filteredPosts.length} {filteredPosts.length === 1 ? 'article' : 'articles'}
-                </span>
-              </div>
-            </div>
 
-            {filteredPosts.length === 0 ? (
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="relative min-w-[240px] flex-1 sm:flex-initial">
+                    <svg
+                      className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search articles or author..."
+                      aria-label="Search articles"
+                      className="w-full rounded-full border border-ink/15 bg-paper py-2 pl-10 pr-4 text-[13px] text-ink placeholder:text-ink/40 focus:border-ink focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-ink/40">
+                    {filteredPosts.length} {filteredPosts.length === 1 ? 'article' : 'articles'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {allPosts.length === 0 ? (
+              <div className="rounded-2xl border border-ink/10 bg-paper px-6 py-16 text-center">
+                <h2 className="text-2xl font-light text-ink">No blog articles published yet</h2>
+                <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
+                  Check back soon for new engineering articles on ISO 26262 functional safety,
+                  automotive cybersecurity, SOTIF, and software-defined vehicles.
+                </p>
+              </div>
+            ) : filteredPosts.length === 0 ? (
               <div className="rounded-2xl border border-ink/10 bg-paper px-6 py-16 text-center">
                 <h2 className="text-2xl font-light text-ink">No matching articles found</h2>
                 <p className="mt-2 text-sm text-ink/60">

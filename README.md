@@ -83,7 +83,7 @@ Built with **Next.js 16 (App Router, Turbopack)**, **React 19**, **TypeScript**,
   - **Knowledge Mine** external feed synced with ISR/caching via `/api/knowledge-mine`.
   - Latest blog articles.
 - **Engineering Blog (`/blog`, `/blog/[slug]`):**
-  - Server-rendered articles backed by Neon Postgres (`blogs`) with starter post fallback.
+  - Server-rendered articles backed strictly by Neon Postgres (`blogs`) with empty states when none are published.
   - Card metadata (thumbnail, category, title, excerpt, author, published date, read time).
   - Interactive reader bar: 5-star rating, likes (`/api/blogs/[slug]/engage`), LinkedIn share, copy link, print layout, optional downloadable attachment card, daily/unique view telemetry (`blog_views`), and public comments (`blog_comments`).
 - **Events (`/events`):** Published workshops/webinars from Postgres (`events`) with registration either via external Google Form links or built-in database registration (`/api/events/register`).

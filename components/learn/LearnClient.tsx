@@ -157,13 +157,22 @@ export function LearnClient({
                 <Arrow className="transition-transform group-hover:translate-x-1.5" />
               </Link>
             </Reveal>
-            <div className="grid gap-x-8 gap-y-14 md:grid-cols-3">
-              {latestArticles.map((p, i) => (
-                <Reveal key={p.slug} delay={i * 110} className="h-full">
-                  <PostCard post={p} />
-                </Reveal>
-              ))}
-            </div>
+            {latestArticles.length === 0 ? (
+              <div className="rounded-2xl border border-ink/10 bg-paper px-6 py-14 text-center">
+                <p className="text-lg font-light text-ink">No blog articles published yet</p>
+                <p className="mt-2 text-sm text-ink/60">
+                  Published engineering articles will appear here as soon as they go live.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-x-8 gap-y-14 md:grid-cols-3">
+                {latestArticles.map((p, i) => (
+                  <Reveal key={p.slug} delay={i * 110} className="h-full">
+                    <PostCard post={p} />
+                  </Reveal>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

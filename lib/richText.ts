@@ -8,7 +8,7 @@ function escapeHtmlText(raw: string): string {
 }
 
 export function isHtmlContent(value: string): boolean {
-  return /<(p|div|h[1-6]|ul|ol|li|blockquote|pre|code|span|strong|b|em|i|u|a|br)\b[^>]*>/i.test(
+  return /<(p|div|h[1-6]|ul|ol|li|blockquote|pre|code|span|strong|b|em|i|u|a|br|img|figure)\b[^>]*>/i.test(
     value.trim(),
   );
 }
@@ -83,7 +83,21 @@ export function markdownToHtml(markdown: string): string {
       flushQuote();
       continue;
     }
-    if (trimmed.startsWith('### ')) {
+    if (/^!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)$/.test(trimmed)) {
+      flushPara();
+      flushList();
+      flushQuote();
+      const m = trimmed.match(/^!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)$/);
+      if (m) {
+        const alt = escapeHtmlText(m[1]);
+        const src = escapeHtmlText(m[2]);
+        out.push(
+          alt
+            ? `<figure><img src="${src}" alt="${alt}" /><figcaption>${alt}</figcaption></figure>`
+            : `<figure><img src="${src}" alt="" /></figure>`,
+        );
+      }
+    } else if (trimmed.startsWith('### ')) {
       flushPara();
       flushList();
       flushQuote();
@@ -186,7 +200,17 @@ const ALLOWED_TAGS = new Set([
   'span',
   'font',
   'hr',
+  'img',
+  'figure',
+  'figcaption',
 ]);
+
+function isSafeImageSrc(src: string): boolean {
+  const trimmed = src.trim();
+  if (/^(https?:\/\/|\/)/i.test(trimmed)) return true;
+  if (/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(trimmed)) return true;
+  return false;
+}
 
 /**
  * Sanitizes rich-text HTML authored in the editor so scripts/event handlers are stripped
@@ -228,6 +252,25 @@ export function sanitizeBlogHtml(html: string): string {
           attrs.push('target="_blank"');
           attrs.push('rel="noopener noreferrer"');
         }
+      }
+
+      if (tag === 'img') {
+        const srcMatch = rawAttrs.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+        const rawSrc = (srcMatch?.[1] ?? srcMatch?.[2] ?? '').trim();
+        if (!isSafeImageSrc(rawSrc)) return '';
+
+        const altMatch = rawAttrs.match(/\balt\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+        const rawAlt = (altMatch?.[1] ?? altMatch?.[2] ?? '').trim();
+
+        const imgAttrs = [
+          `src="${escapeHtmlText(rawSrc)}"`,
+          `alt="${escapeHtmlText(rawAlt)}"`,
+          'loading="lazy"',
+        ];
+        if (safeStyle) {
+          imgAttrs.push(`style="${escapeHtmlText(safeStyle)}"`);
+        }
+        return `<img ${imgAttrs.join(' ')} />`;
       }
 
       if (tag === 'font') {

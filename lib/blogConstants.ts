@@ -1,5 +1,4 @@
 import { IMG } from '@/components/premium-home/data';
-import { POSTS, readMinutes } from '@/components/learn/learn-data';
 
 export const BLOG_CATEGORIES = [
   'Functional Safety',
@@ -60,7 +59,6 @@ export interface BlogCardData {
   author: string;
   publishedAt: string | null;
   readTimeLabel: string;
-  isStarter?: boolean;
 }
 
 export function slugifyBlogTitle(text: string): string {
@@ -104,7 +102,7 @@ export function toDateInputValue(value: string | Date | null | undefined): strin
 }
 
 export function mergeBlogCards(dbRows: DbBlogRow[]): BlogCardData[] {
-  const dbCards: BlogCardData[] = dbRows.map((b, idx) => ({
+  return dbRows.map((b, idx) => ({
     slug: b.slug,
     title: b.title,
     category: b.category || 'Functional Safety',
@@ -116,20 +114,5 @@ export function mergeBlogCards(dbRows: DbBlogRow[]): BlogCardData[] {
     publishedAt: b.publishedAt || b.createdAt,
     readTimeLabel: b.readTime || '5 min read',
   }));
-
-  const seen = new Set(dbCards.map((card) => card.slug));
-  const starterCards: BlogCardData[] = POSTS.filter((p) => !seen.has(p.slug)).map((p) => ({
-    slug: p.slug,
-    title: p.title,
-    category: p.category,
-    excerpt: p.excerpt,
-    image: p.image,
-    author: 'Drivvize Engineering',
-    publishedAt: null,
-    readTimeLabel: `${readMinutes(p)} min read`,
-    isStarter: true,
-  }));
-
-  return [...dbCards, ...starterCards];
 }
 

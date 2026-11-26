@@ -7,7 +7,6 @@ import { eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { blogs, blogViews } from '@/lib/db/schema';
 import { IMG } from '@/components/premium-home/data';
-import { POSTS, readMinutes } from '@/components/learn/learn-data';
 import { mergeBlogCards } from '@/lib/blogConstants';
 import {
   getApprovedBlogComments,
@@ -55,20 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
   } catch {
-    // Fallback to starter posts below
-  }
-
-  const starter = POSTS.find((p) => p.slug === slug);
-  if (starter) {
-    return {
-      title: `${starter.title} | Drivvize Blog`,
-      description: starter.excerpt,
-      openGraph: {
-        title: starter.title,
-        description: starter.excerpt,
-        images: [starter.image],
-      },
-    };
+    // Database lookup failed
   }
 
   return { title: 'Article Not Found | Drivvize' };
@@ -110,23 +96,6 @@ export default async function BlogPostPage({ params }: Props) {
     }
   } catch (error) {
     console.error('Failed to query blog by slug:', error);
-  }
-
-  if (!article) {
-    const starter = POSTS.find((p) => p.slug === slug);
-    if (starter) {
-      article = {
-        slug: starter.slug,
-        title: starter.title,
-        category: starter.category,
-        excerpt: starter.excerpt,
-        image: starter.image,
-        author: 'Drivvize Engineering',
-        publishedAt: null,
-        readTimeLabel: `${readMinutes(starter)} min read`,
-        blocks: starter.blocks,
-      };
-    }
   }
 
   if (!article) {

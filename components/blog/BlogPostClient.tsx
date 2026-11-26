@@ -7,7 +7,7 @@ import Footer from '@/components/premium-home/Footer';
 import { Reveal } from '@/components/premium-home/hooks';
 import { formatBlogDate } from '@/lib/blogConstants';
 import type { BlogEngagementStats } from '@/lib/blogQueries';
-import { POSTS, readMinutes, type Block, type Post } from '@/components/learn/learn-data';
+import type { Block } from '@/components/learn/learn-data';
 import PostCard, { type PostCardItem } from '@/components/learn/PostCard';
 import { ArticleContent } from './ArticleContent';
 import { BlogComments, type PublicBlogComment } from './BlogComments';
@@ -56,15 +56,7 @@ export function BlogPostClient({
     return () => window.removeEventListener('scroll', on);
   }, [post.slug]);
 
-  const related: PostCardItem[] =
-    relatedPosts && relatedPosts.length > 0
-      ? relatedPosts
-      : POSTS.filter((p) => p.slug !== post.slug)
-          .sort(
-            (a, b) =>
-              Number(b.category === post.category) - Number(a.category === post.category),
-          )
-          .slice(0, 3);
+  const related: PostCardItem[] = relatedPosts ?? [];
 
   let firstPara = true;
   const engagement = initialEngagement ?? { likes: 0, ratingSum: 0, ratingCount: 0 };
@@ -229,21 +221,23 @@ export function BlogPostClient({
         </article>
 
         {/* Keep reading */}
-        <section className="print:hidden bg-paper py-24 lg:py-32">
-          <div className="mx-auto max-w-[1320px] px-6 lg:px-10">
-            <Reveal className="mb-14 flex items-center gap-4">
-              <p className="eyebrow text-brand">Keep reading</p>
-              <span className="h-px flex-1 bg-ink/10" />
-            </Reveal>
-            <div className="grid gap-x-8 gap-y-14 md:grid-cols-3">
-              {related.map((p, i) => (
-                <Reveal key={p.slug} delay={i * 100} className="h-full">
-                  <PostCard post={p} />
-                </Reveal>
-              ))}
+        {related.length > 0 && (
+          <section className="print:hidden bg-paper py-24 lg:py-32">
+            <div className="mx-auto max-w-[1320px] px-6 lg:px-10">
+              <Reveal className="mb-14 flex items-center gap-4">
+                <p className="eyebrow text-brand">Keep reading</p>
+                <span className="h-px flex-1 bg-ink/10" />
+              </Reveal>
+              <div className="grid gap-x-8 gap-y-14 md:grid-cols-3">
+                {related.map((p, i) => (
+                  <Reveal key={p.slug} delay={i * 100} className="h-full">
+                    <PostCard post={p} />
+                  </Reveal>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       <div className="print:hidden">
@@ -251,17 +245,4 @@ export function BlogPostClient({
       </div>
     </div>
   );
-}
-
-export function fromStaticPost(p: Post): BlogArticleData {
-  return {
-    slug: p.slug,
-    title: p.title,
-    category: p.category,
-    excerpt: p.excerpt,
-    image: p.image,
-    author: 'Drivvize Engineering',
-    readTimeLabel: `${readMinutes(p)} min read`,
-    blocks: p.blocks,
-  };
 }

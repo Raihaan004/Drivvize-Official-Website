@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Code2,
   Highlighter,
+  ImagePlus,
   IndentDecrease,
   IndentIncrease,
   Info,
@@ -20,8 +21,10 @@ import {
   Quote,
   Underline,
   Unlink,
+  Upload,
 } from 'lucide-react';
 import { markdownToHtml } from '@/lib/richText';
+import { compressImageToDataUrl } from './blogEditorHelpers';
 
 interface RichTextEditorProps {
   value: string;
@@ -30,7 +33,17 @@ interface RichTextEditorProps {
 
 type BlockFormat = 'p' | 'h1' | 'h2' | 'h3';
 type AlignType = 'left' | 'center' | 'right' | 'justify';
-type OpenMenu = 'block' | 'size' | 'color' | 'highlight' | 'link' | 'align' | 'spacing' | 'info' | null;
+type OpenMenu =
+  | 'block'
+  | 'size'
+  | 'color'
+  | 'highlight'
+  | 'link'
+  | 'image'
+  | 'align'
+  | 'spacing'
+  | 'info'
+  | null;
 
 const BLOCK_OPTIONS: { value: BlockFormat; label: string }[] = [
   { value: 'p', label: 'Paragraph' },
@@ -74,6 +87,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   const toolbarRef = useRef<HTMLDivElement | null>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const initializedRef = useRef(false);
+  const imageFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
   const [activeBlock, setActiveBlock] = useState<BlockFormat>('p');
@@ -89,11 +103,17 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   const [isOl, setIsOl] = useState(false);
   const [isEmpty, setIsEmpty] = useState(() => !value.trim());
   const [linkUrl, setLinkUrl] = useState('https://');
+  const [imageTab, setImageTab] = useState<'link' | 'upload'>('link');
+  const [imageUrl, setImageUrl] = useState('https://');
+  const [imageCaption, setImageCaption] = useState('');
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageError, setImageError] = useState('');
   const [wordCount, setWordCount] = useState(0);
 
   const syncPlainMetrics = useCallback((el: HTMLDivElement) => {
     const text = (el.textContent || '').replace(/\u00a0/g, ' ').trim();
-    setIsEmpty(text.length === 0);
+    const hasMedia = Boolean(el.querySelector('img'));
+    setIsEmpty(text.length === 0 && !hasMedia);
     setWordCount(text ? text.split(/\s+/).length : 0);
   }, []);
 
@@ -321,6 +341,96 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
     runExec('createLink', url);
   };
 
+  const insertImageAtCursor = useCallback(
+    (src: string, caption?: string) => {
+      const el = editorRef.current;
+      if (!el) return;
+
+      el.focus();
+      const sel = window.getSelection();
+      let range = savedRangeRef.current;
+      if (!range || !el.contains(range.commonAncestorContainer)) {
+        range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+      }
+
+      const figure = document.createElement('figure');
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = caption?.trim() || 'Article image';
+      img.loading = 'lazy';
+      figure.appendChild(img);
+
+      if (caption?.trim()) {
+        const figcaption = document.createElement('figcaption');
+        figcaption.textContent = caption.trim();
+        figure.appendChild(figcaption);
+      }
+
+      const trailingPara = document.createElement('p');
+      trailingPara.appendChild(document.createElement('br'));
+
+      range.deleteContents();
+      range.insertNode(trailingPara);
+      range.insertNode(figure);
+
+      const nextRange = document.createRange();
+      nextRange.setStart(trailingPara, 0);
+      nextRange.collapse(true);
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(nextRange);
+      }
+      savedRangeRef.current = nextRange.cloneRange();
+
+      setOpenMenu(null);
+      setImageUrl('https://');
+      setImageCaption('');
+      setImageError('');
+      refreshActiveStates();
+      emitChange();
+    },
+    [emitChange, refreshActiveStates],
+  );
+
+  const applyImageLink = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = imageUrl.trim();
+    if (!trimmed || trimmed === 'https://' || !/^(https?:\/\/|\/)/i.test(trimmed)) {
+      setImageError('Please enter a valid http(s):// or / relative image URL.');
+      return;
+    }
+    insertImageAtCursor(trimmed, imageCaption);
+  };
+
+  const handleImageFileUpload = async (file: File | null) => {
+    if (!file) return;
+    setImageError('');
+    setImageUploading(true);
+    try {
+      const dataUrl = await compressImageToDataUrl(file, 1400);
+      insertImageAtCursor(dataUrl, imageCaption);
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Failed to process image.');
+    } finally {
+      setImageUploading(false);
+      if (imageFileInputRef.current) {
+        imageFileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const files = Array.from(e.clipboardData.files || []).filter((f) =>
+      f.type.startsWith('image/'),
+    );
+    if (files.length === 0) return;
+    e.preventDefault();
+    saveSelection();
+    await handleImageFileUpload(files[0]);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -538,7 +648,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
 
         <span className="mx-1 h-5 w-px bg-line" />
 
-        {/* 6. Link */}
+        {/* 6. Link & Image */}
         <div className="relative">
           <button
             type="button"
@@ -589,6 +699,135 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                   <Unlink className="h-3.5 w-3.5" />
                 </button>
               </div>
+            </div>
+          )}
+        </div>
+
+        <div className="relative">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              saveSelection();
+              setImageError('');
+              setOpenMenu(openMenu === 'image' ? null : 'image');
+            }}
+            className={`${btnBase} gap-1.5 px-2.5 ${openMenu === 'image' ? btnActive : ''}`}
+            title="Insert image (link or upload)"
+            aria-label="Insert image"
+          >
+            <ImagePlus className="h-4 w-4" />
+            <span className="hidden sm:inline text-xs font-semibold">Image</span>
+          </button>
+          {openMenu === 'image' && (
+            <div className="absolute left-0 top-full z-30 mt-1.5 w-80 rounded-xl border border-line bg-white p-3.5 shadow-xl">
+              <div className="mb-3 flex items-center gap-1 rounded-lg bg-paper p-1">
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setImageError('');
+                    setImageTab('link');
+                  }}
+                  className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors ${
+                    imageTab === 'link' ? 'bg-white text-ink shadow-xs' : 'text-ink/60 hover:text-ink'
+                  }`}
+                >
+                  <Link2 className="h-3.5 w-3.5" />
+                  <span>Image Link</span>
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setImageError('');
+                    setImageTab('upload');
+                  }}
+                  className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors ${
+                    imageTab === 'upload'
+                      ? 'bg-white text-ink shadow-xs'
+                      : 'text-ink/60 hover:text-ink'
+                  }`}
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  <span>Upload Image</span>
+                </button>
+              </div>
+
+              <div className="mb-2.5">
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-ink/55">
+                  Caption / Alt Text (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={imageCaption}
+                  onChange={(e) => setImageCaption(e.target.value)}
+                  placeholder="e.g. ISO 26262 safety architecture diagram"
+                  className="w-full rounded-lg border border-line bg-paper px-2.5 py-1.5 text-xs text-ink focus:border-brand focus:outline-none"
+                />
+              </div>
+
+              {imageTab === 'link' ? (
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-ink/55">
+                    Image URL
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="url"
+                      value={imageUrl}
+                      onChange={(e) => {
+                        setImageError('');
+                        setImageUrl(e.target.value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          applyImageLink(e);
+                        }
+                      }}
+                      placeholder="https://example.com/diagram.png"
+                      className="w-full rounded-lg border border-line bg-paper px-2.5 py-1.5 text-xs text-ink focus:border-brand focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyImageLink}
+                      className="shrink-0 cursor-pointer rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-white hover:bg-deep"
+                    >
+                      Insert
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    ref={imageFileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    onChange={(e) => handleImageFileUpload(e.target.files?.[0] ?? null)}
+                    className="sr-only"
+                  />
+                  <button
+                    type="button"
+                    disabled={imageUploading}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => imageFileInputRef.current?.click()}
+                    className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-ink/25 bg-paper/70 px-3 py-4 text-center transition-colors hover:border-brand hover:bg-paper disabled:opacity-60"
+                  >
+                    <Upload className="mb-1.5 h-5 w-5 text-deep" />
+                    <span className="text-xs font-bold text-ink">
+                      {imageUploading ? 'Processing image...' : 'Choose image from computer'}
+                    </span>
+                    <span className="mt-0.5 text-[10px] text-ink/55">
+                      PNG, JPG, WebP — inserted at cursor
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {imageError && (
+                <p className="mt-2 text-[11px] font-semibold text-red-600">{imageError}</p>
+              )}
             </div>
           )}
         </div>
@@ -800,6 +1039,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
             onMouseUp={refreshActiveStates}
             onKeyUp={refreshActiveStates}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             onBlur={saveSelection}
             className="article-rich-html min-h-[360px] text-[18px] leading-[1.75] text-ink outline-none"
           />

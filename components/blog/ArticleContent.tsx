@@ -143,6 +143,29 @@ export function ArticleContent({ content }: ArticleContentProps) {
       return;
     }
 
+    if (/^!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)$/.test(trimmed)) {
+      flushParagraph(`p-img-${index}`);
+      flushList(`ul-img-${index}`);
+      flushQuote(`q-img-${index}`);
+      const m = trimmed.match(/^!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)$/);
+      if (m) {
+        elements.push(
+          <figure key={`img-${index}`} className="my-8">
+            <img
+              src={m[2]}
+              alt={m[1]}
+              loading="lazy"
+              className="w-full rounded-xl border border-line object-cover"
+            />
+            {m[1] && (
+              <figcaption className="mt-2 text-center text-xs text-ink/55">{m[1]}</figcaption>
+            )}
+          </figure>,
+        );
+      }
+      return;
+    }
+
     if (trimmed.startsWith('### ')) {
       flushParagraph(`p-h3-${index}`);
       flushList(`ul-h3-${index}`);
