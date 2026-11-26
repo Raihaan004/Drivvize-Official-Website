@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -61,6 +61,46 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
     isKnownInitialCategory ? '' : initialCategory,
   );
   const [author, setAuthor] = useState(initialData?.author || 'Drivvize Engineering');
+  const [writers, setWriters] = useState<
+    Array<{ id: string; name: string; title?: string; role?: string }>
+  >([]);
+  const [useCustomAuthor, setUseCustomAuthor] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/admin/writers')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.success && Array.isArray(data.writers)) {
+          setWriters(data.writers);
+        }
+      })
+      .catch(() => {
+        // Fallback to BLOG_AUTHORS presets if fetch fails
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const availableWriters = useMemo(() => {
+    if (writers.length > 0) return writers;
+    return BLOG_AUTHORS.map((name, idx) => ({
+      id: `preset-${idx}`,
+      name,
+      title: '',
+      role: '',
+    }));
+  }, [writers]);
+
+  const matchedWriter = availableWriters.find(
+    (w) => w.name.trim().toLowerCase() === author.trim().toLowerCase(),
+  );
+  const writerSelectValue = useCustomAuthor
+    ? '__custom__'
+    : matchedWriter
+      ? matchedWriter.name
+      : '__custom__';
   const [readTime, setReadTime] = useState(initialData?.readTime || '5 min read');
   const [readTimeManuallyEdited, setReadTimeManuallyEdited] = useState(mode === 'edit');
   const [publishedDate, setPublishedDate] = useState(
@@ -248,7 +288,7 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs">
         <div>
           <Link
             href="/admin/blogs"
@@ -419,27 +459,70 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
           </div>
 
           <div className="rounded-2xl border border-line bg-white p-5 shadow-xs">
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-ink/70">
-              Author Name
-            </label>
-            <input
-              type="text"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="Author name"
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-ink/70">
+                Writer / Author
+              </label>
+              <Link
+                href="/admin/blogs/writers"
+                className="text-[11px] font-semibold text-brand hover:underline"
+              >
+                Manage Writers &rarr;
+              </Link>
+            </div>
+            <select
+              value={writerSelectValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '__custom__') {
+                  setUseCustomAuthor(true);
+                } else {
+                  setUseCustomAuthor(false);
+                  setAuthor(val);
+                }
+              }}
               className="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:outline-none"
-            />
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {BLOG_AUTHORS.map((presetAuthor) => (
-                <button
-                  key={presetAuthor}
-                  type="button"
-                  onClick={() => setAuthor(presetAuthor)}
-                  className="cursor-pointer rounded-full bg-paper px-2 py-0.5 text-[10px] font-semibold text-ink/65 hover:bg-line hover:text-ink"
-                >
-                  {presetAuthor}
-                </button>
+            >
+              {availableWriters.map((writer) => (
+                <option key={writer.id} value={writer.name}>
+                  {writer.name}
+                  {writer.title ? ` — ${writer.title}` : ''}
+                </option>
               ))}
+              <option value="__custom__">+ Custom author name...</option>
+            </select>
+            {writerSelectValue === '__custom__' && (
+              <input
+                type="text"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="Enter custom author name"
+                className="mt-2.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:outline-none"
+              />
+            )}
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {availableWriters.slice(0, 6).map((writer) => {
+                const selected =
+                  !useCustomAuthor &&
+                  writer.name.trim().toLowerCase() === author.trim().toLowerCase();
+                return (
+                  <button
+                    key={writer.id}
+                    type="button"
+                    onClick={() => {
+                      setUseCustomAuthor(false);
+                      setAuthor(writer.name);
+                    }}
+                    className={`cursor-pointer rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                      selected
+                        ? 'bg-brand text-white'
+                        : 'bg-paper text-ink/65 hover:bg-line hover:text-ink'
+                    }`}
+                  >
+                    {writer.name}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

@@ -1,7 +1,8 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { blogEngagements, blogs } from '@/lib/db/schema';
+import { blogComments, blogEngagements, blogs } from '@/lib/db/schema';
 import type { DbBlogRow } from './blogConstants';
+import type { PublicBlogComment } from '@/components/blog/BlogComments';
 
 export interface BlogEngagementStats {
   likes: number;
@@ -58,5 +59,29 @@ export async function getBlogEngagement(slug: string): Promise<BlogEngagementSta
   } catch (error) {
     console.error('Failed to load blog engagement:', error);
     return { likes: 0, ratingSum: 0, ratingCount: 0 };
+  }
+}
+
+export async function getApprovedBlogComments(slug: string): Promise<PublicBlogComment[]> {
+  try {
+    const rows = await db
+      .select({
+        id: blogComments.id,
+        authorName: blogComments.authorName,
+        comment: blogComments.comment,
+        adminReply: blogComments.adminReply,
+        createdAt: blogComments.createdAt,
+      })
+      .from(blogComments)
+      .where(and(eq(blogComments.blogSlug, slug), eq(blogComments.status, 'approved')))
+      .orderBy(desc(blogComments.createdAt));
+
+    return rows.map((r) => ({
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+    }));
+  } catch (error) {
+    console.error('Failed to load approved blog comments:', error);
+    return [];
   }
 }

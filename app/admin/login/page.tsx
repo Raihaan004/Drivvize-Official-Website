@@ -1,17 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('admin@drivvize.com');
   const [password, setPassword] = useState('admin123');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if already authenticated
   useEffect(() => {
     fetch('/api/admin/auth/me')
       .then((res) => {
@@ -51,17 +52,25 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-ink text-white flex flex-col justify-center items-center px-4 py-12 relative isolate overflow-hidden">
-      {/* Background glow effects */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand/10 rounded-full blur-[140px] pointer-events-none -z-10" />
-      <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-signal/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+    <div className="relative isolate flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#070B12] px-4 py-12 text-white">
+      {/* Subtle architectural grid & ambient glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-20 opacity-20"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
+      <div className="pointer-events-none absolute top-1/4 left-1/2 -z-10 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/15 blur-[140px]" />
+      <div className="pointer-events-none absolute bottom-10 right-10 -z-10 h-[360px] w-[360px] rounded-full bg-signal/10 blur-[120px]" />
 
       <div className="w-full max-w-md">
-        {/* Brand Logo & Header */}
-        <div className="text-center mb-8">
+        <div className="mb-8 text-center">
           <Link
             href="/"
-            className="inline-flex items-center justify-center bg-white px-4 py-2 rounded-2xl border border-white/20 shadow-md mb-6 hover:shadow-lg transition-all"
+            className="mb-6 inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white px-4 py-2 shadow-lg transition-transform hover:-translate-y-0.5"
           >
             <img
               src="/drivvize-logo.png"
@@ -70,24 +79,21 @@ export default function AdminLoginPage() {
             />
           </Link>
 
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-signal mb-2">
-            Control Center
-          </p>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-signal/30 bg-signal/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-signal">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span>Control Center</span>
+          </div>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white">
             Admin Authentication
           </h1>
           <p className="mt-2 text-sm text-white/60">
-            Sign in to manage blogs, monitor leads, and manage page content.
+            Sign in to manage blogs, events, monitor leads, and manage page content.
           </p>
         </div>
 
-        {/* Login Form Box */}
-        <div className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
+        <div className="rounded-3xl border border-white/15 bg-white/[0.05] p-6 shadow-2xl backdrop-blur-2xl sm:p-8">
           {error && (
-            <div className="mb-6 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs font-medium text-rose-300 flex items-start gap-2.5">
-              <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <div className="mb-6 flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-500/15 p-4 text-xs font-medium text-rose-200">
               <span>{error}</span>
             </div>
           )}
@@ -96,69 +102,77 @@ export default function AdminLoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5"
+                className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.16em] text-white/70"
               >
                 Admin Email
               </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@drivvize.com"
-                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal transition-all"
-              />
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@drivvize.com"
+                  className="w-full rounded-xl border border-white/15 bg-white/10 py-3 pl-10 pr-4 text-sm text-white placeholder-white/40 transition-all focus:border-signal focus:bg-white/15 focus:outline-none focus:ring-1 focus:ring-signal"
+                />
+              </div>
             </div>
 
             <div>
               <label
                 htmlFor="password"
-                className="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5"
+                className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.16em] text-white/70"
               >
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal transition-all"
-              />
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl border border-white/15 bg-white/10 py-3 pl-10 pr-10 text-sm text-white placeholder-white/40 transition-all focus:border-signal focus:bg-white/15 focus:outline-none focus:ring-1 focus:ring-signal"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-white/45 hover:text-white"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-signal px-6 py-3.5 text-sm font-bold text-ink transition-all hover:bg-yellow-400 focus:outline-none active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-md"
+              className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-signal px-6 py-3.5 text-sm font-bold text-ink shadow-md transition-all hover:bg-yellow-400 active:scale-[0.99] disabled:opacity-50"
             >
               {isLoading ? (
                 <>
-                  <svg className="h-4 w-4 animate-spin text-ink" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-ink border-t-transparent" />
                   <span>Authenticating...</span>
                 </>
               ) : (
                 <>
                   <span>Sign In to Dashboard</span>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
+                  <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Quick Demo Credentials Info */}
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
-            <p className="text-xs text-white/50 mb-1">
+          <div className="mt-6 border-t border-white/10 pt-5 text-center">
+            <p className="mb-1.5 text-xs text-white/50">
               Pre-filled with default administrative credentials:
             </p>
-            <div className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-mono text-signal">
+            <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-1.5 font-mono text-xs text-signal">
               <span>admin@drivvize.com</span>
               <span className="text-white/30">&bull;</span>
               <span>admin123</span>
@@ -166,15 +180,12 @@ export default function AdminLoginPage() {
           </div>
         </div>
 
-        {/* Back to main site link */}
         <div className="mt-8 text-center">
           <Link
             href="/"
-            className="text-xs font-semibold text-white/60 hover:text-white transition-colors inline-flex items-center gap-1.5"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/60 transition-colors hover:text-white"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <ArrowLeft className="h-3.5 w-3.5" />
             <span>Return to Drivvize Public Website</span>
           </Link>
         </div>

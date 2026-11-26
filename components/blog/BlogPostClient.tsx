@@ -10,6 +10,7 @@ import type { BlogEngagementStats } from '@/lib/blogQueries';
 import { POSTS, readMinutes, type Block, type Post } from '@/components/learn/learn-data';
 import PostCard, { type PostCardItem } from '@/components/learn/PostCard';
 import { ArticleContent } from './ArticleContent';
+import { BlogComments, type PublicBlogComment } from './BlogComments';
 import {
   BlogDocumentCard,
   BlogShareAndLikeBar,
@@ -36,10 +37,12 @@ export function BlogPostClient({
   post,
   relatedPosts,
   initialEngagement,
+  initialComments,
 }: {
   post: BlogArticleData;
   relatedPosts?: PostCardItem[];
   initialEngagement?: BlogEngagementStats;
+  initialComments?: PublicBlogComment[];
 }) {
   const [progress, setProgress] = useState(0);
 
@@ -203,6 +206,12 @@ export function BlogPostClient({
               slug={post.slug}
               title={post.title}
               initialLikes={engagement.likes}
+            />
+
+            <BlogComments
+              slug={post.slug}
+              blogTitle={post.title}
+              initialComments={initialComments}
             />
 
             <Reveal className="print:hidden mt-14 flex flex-wrap items-center justify-between gap-6 border-t border-ink/10 pt-10">

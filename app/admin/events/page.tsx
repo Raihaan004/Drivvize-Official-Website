@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Calendar, ExternalLink, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { IMG } from '@/components/premium-home/data';
 import type { DbEventSerialized } from '@/lib/eventConstants';
 
@@ -156,9 +157,9 @@ export default function AdminEventsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 border-b border-line pb-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center">
         <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-brand">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand">
             Trainings &amp; Conferences
           </span>
           <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
@@ -173,36 +174,42 @@ export default function AdminEventsPage() {
           <Link
             href="/events"
             target="_blank"
-            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2.5 text-xs font-bold text-ink/70 shadow-xs hover:bg-paper"
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-ink/75 hover:bg-slate-50"
           >
-            View Public Events
+            <span>View Public Events</span>
+            <ExternalLink className="h-3.5 w-3.5" />
           </Link>
           <button
             type="button"
             onClick={loadEvents}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2.5 text-xs font-bold text-ink/70 shadow-xs hover:bg-paper"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-ink/75 hover:bg-slate-50"
           >
-            Refresh
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>Refresh</span>
           </button>
           <Link
             href="/admin/events/new"
             className="inline-flex items-center gap-2 rounded-full bg-signal px-5 py-2.5 text-xs font-bold text-ink shadow-xs hover:bg-yellow-400"
           >
-            <span>+ Post New Event</span>
+            <Plus className="h-3.5 w-3.5" />
+            <span>Post New Event</span>
           </Link>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="space-y-3 rounded-2xl border border-line bg-white p-4 shadow-xs">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
         <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search events by title, host, location, or slug..."
-            className="w-full max-w-md rounded-xl border border-line bg-paper px-4 py-2 text-xs text-ink placeholder-ink/40 focus:border-brand focus:outline-none sm:text-sm"
-          />
+          <div className="relative max-w-md flex-1">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search events by title, host, location, or slug..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 text-xs text-ink placeholder-ink/40 focus:border-brand focus:bg-white focus:outline-none sm:text-sm"
+            />
+          </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {(['ALL', 'upcoming', 'past'] as const).map((s) => (
@@ -210,10 +217,10 @@ export default function AdminEventsPage() {
                 key={s}
                 type="button"
                 onClick={() => setStatusFilter(s)}
-                className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-semibold ${
+                className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-bold ${
                   statusFilter === s
                     ? 'bg-ink text-white'
-                    : 'bg-paper text-ink/70 hover:bg-line'
+                    : 'bg-slate-100 text-ink/70 hover:bg-slate-200'
                 }`}
               >
                 {s === 'ALL' ? 'All Status' : s === 'upcoming' ? 'Upcoming' : 'Past'}
@@ -224,10 +231,10 @@ export default function AdminEventsPage() {
                 key={k}
                 type="button"
                 onClick={() => setKindFilter(k)}
-                className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-semibold ${
+                className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-bold ${
                   kindFilter === k
                     ? 'bg-deep text-white'
-                    : 'bg-paper text-ink/70 hover:bg-line'
+                    : 'bg-slate-100 text-ink/70 hover:bg-slate-200'
                 }`}
               >
                 {k === 'ALL' ? 'All Types' : k === 'internal' ? 'Internal' : 'External'}
@@ -238,21 +245,24 @@ export default function AdminEventsPage() {
       </div>
 
       {/* Events Table */}
-      <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-xs">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-16 text-sm text-ink/40">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-sm text-ink/45">
+            <div className="h-7 w-7 animate-spin rounded-full border-2 border-brand border-t-transparent" />
             <span>Loading events...</span>
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="mx-auto max-w-sm px-4 py-16 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-ink/40">
+              <Calendar className="h-6 w-6" />
+            </div>
             <h3 className="text-base font-bold text-ink">No events found</h3>
             <p className="mb-5 mt-1 text-xs text-ink/60">
               Create your first event or adjust your filters.
             </p>
             <Link
               href="/admin/events/new"
-              className="inline-flex items-center gap-2 rounded-full bg-signal px-5 py-2 text-xs font-bold text-ink"
+              className="inline-flex items-center gap-2 rounded-full bg-signal px-5 py-2.5 text-xs font-bold text-ink"
             >
               Post New Event
             </Link>
@@ -261,37 +271,35 @@ export default function AdminEventsPage() {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-xs sm:text-sm">
               <thead>
-                <tr className="border-b border-line bg-paper/60 text-[11px] font-bold uppercase tracking-wider text-ink/60">
-                  <th className="px-6 py-3.5">Event</th>
-                  <th className="px-4 py-3.5">Type &amp; Format</th>
-                  <th className="px-4 py-3.5">Schedule</th>
-                  <th className="px-4 py-3.5">Registrations</th>
-                  <th className="px-4 py-3.5">Visibility</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
+                <tr className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-ink/55">
+                  <th className="px-6 py-4">Event</th>
+                  <th className="px-4 py-4">Type &amp; Format</th>
+                  <th className="px-4 py-4">Schedule</th>
+                  <th className="px-4 py-4">Registration</th>
+                  <th className="px-4 py-4">Visibility</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody className="divide-y divide-slate-100">
                 {filteredEvents.map((ev) => (
-                  <tr key={ev.id} className="transition-colors hover:bg-paper/40">
+                  <tr key={ev.id} className="transition-colors hover:bg-slate-50/70">
                     <td className="max-w-md px-6 py-4">
                       <div className="flex items-start gap-3.5">
                         <img
                           src={ev.image || IMG.stage}
                           alt={ev.title}
-                          className="h-14 w-20 shrink-0 rounded-lg border border-line bg-paper object-cover"
+                          className="h-14 w-20 shrink-0 rounded-xl border border-slate-200 bg-slate-50 object-cover"
                         />
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="line-clamp-1 text-sm font-bold text-ink">
-                              {ev.title}
-                            </p>
+                            <p className="line-clamp-1 text-sm font-bold text-ink">{ev.title}</p>
                             {ev.isFeatured && (
-                              <span className="rounded-full bg-signal px-2 py-0.5 text-[10px] font-bold uppercase text-ink">
+                              <span className="rounded-full bg-signal px-2.5 py-0.5 text-[10px] font-bold uppercase text-ink">
                                 Featured
                               </span>
                             )}
                           </div>
-                          <p className="mt-0.5 truncate font-mono text-xs text-ink/40">
+                          <p className="mt-0.5 truncate font-mono text-xs text-ink/45">
                             /events#{ev.slug}
                           </p>
                           <p className="mt-1 line-clamp-1 text-xs text-ink/60">
@@ -303,7 +311,7 @@ export default function AdminEventsPage() {
 
                     <td className="whitespace-nowrap px-4 py-4">
                       <div className="flex flex-col gap-1">
-                        <span className="inline-block w-fit rounded-md bg-brand/10 px-2.5 py-0.5 text-xs font-bold capitalize text-brand">
+                        <span className="inline-block w-fit rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold capitalize text-deep">
                           {ev.kind}
                         </span>
                         <span className="text-xs text-ink/60">
@@ -315,7 +323,7 @@ export default function AdminEventsPage() {
                     <td className="whitespace-nowrap px-4 py-4 text-xs text-ink/70">
                       {ev.startDate ? (
                         <>
-                          <p className="font-semibold text-ink">
+                          <p className="font-bold text-ink">
                             {new Date(ev.startDate).toLocaleDateString('en-IN', {
                               day: 'numeric',
                               month: 'short',
@@ -325,34 +333,32 @@ export default function AdminEventsPage() {
                           {ev.timeLabel && <p className="text-ink/50">{ev.timeLabel}</p>}
                         </>
                       ) : ev.year ? (
-                        <p className="font-semibold text-ink">{ev.year}</p>
+                        <p className="font-bold text-ink">{ev.year}</p>
                       ) : (
                         <p className="text-ink/45">TBA</p>
                       )}
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-4">
-                      <div className="flex flex-col items-start gap-1.5">
-                        {ev.registrationUrl ? (
-                          <a
-                            href={ev.registrationUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-xs font-bold text-brand hover:bg-brand/20"
-                          >
-                            <span>Google Form</span>
-                            <span aria-hidden="true">&nearr;</span>
-                          </a>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => openRegistrationsModal(ev)}
-                            className="cursor-pointer rounded-full border border-line bg-paper px-3 py-1 text-xs font-bold text-ink hover:bg-line"
-                          >
-                            {ev.registrationCount ?? 0} registered
-                          </button>
-                        )}
-                      </div>
+                      {ev.registrationUrl ? (
+                        <a
+                          href={ev.registrationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-deep hover:bg-blue-100"
+                        >
+                          <span>Google Form</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => openRegistrationsModal(ev)}
+                          className="cursor-pointer rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-ink hover:bg-slate-100"
+                        >
+                          {ev.registrationCount ?? 0} registered
+                        </button>
+                      )}
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-4">
@@ -360,12 +366,17 @@ export default function AdminEventsPage() {
                         type="button"
                         disabled={togglingId === ev.id}
                         onClick={() => handleTogglePublish(ev)}
-                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold disabled:opacity-50 ${
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold disabled:opacity-50 ${
                           ev.isPublished
                             ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                             : 'border-amber-200 bg-amber-50 text-amber-700'
                         }`}
                       >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            ev.isPublished ? 'bg-emerald-500' : 'bg-amber-500'
+                          }`}
+                        />
                         {togglingId === ev.id
                           ? 'Updating...'
                           : ev.isPublished
@@ -374,19 +385,19 @@ export default function AdminEventsPage() {
                       </button>
                     </td>
 
-                    <td className="space-x-2 whitespace-nowrap px-6 py-4 text-right">
+                    <td className="space-x-1.5 whitespace-nowrap px-6 py-4 text-right">
                       {ev.isPublished && (
                         <Link
                           href={`/events#${ev.slug}`}
                           target="_blank"
-                          className="inline-flex items-center rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-bold text-deep hover:bg-paper"
+                          className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-deep hover:bg-slate-50"
                         >
                           View
                         </Link>
                       )}
                       <Link
                         href={`/admin/events/${ev.id}`}
-                        className="inline-flex items-center rounded-lg border border-line bg-paper px-3 py-1.5 text-xs font-bold text-ink hover:text-brand"
+                        className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-bold text-ink hover:bg-slate-200"
                       >
                         Edit
                       </Link>
@@ -394,9 +405,10 @@ export default function AdminEventsPage() {
                         type="button"
                         disabled={deletingId === ev.id}
                         onClick={() => handleDelete(ev.id, ev.title)}
-                        className="cursor-pointer rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 disabled:opacity-50"
+                        className="inline-flex cursor-pointer items-center gap-1 rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 disabled:opacity-50"
                       >
-                        {deletingId === ev.id ? 'Deleting...' : 'Delete'}
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>{deletingId === ev.id ? '...' : 'Delete'}</span>
                       </button>
                     </td>
                   </tr>
@@ -409,21 +421,21 @@ export default function AdminEventsPage() {
 
       {/* Registrations Modal */}
       {regsModalEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-xs">
-          <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-line bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-line px-6 py-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-xs">
+          <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-center justify-between bg-ink px-6 py-5 text-white">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-brand">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-signal">
                   Event Registrations
                 </p>
-                <h2 className="text-base font-bold text-ink">{regsModalEvent.title}</h2>
+                <h2 className="mt-0.5 text-base font-bold">{regsModalEvent.title}</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setRegsModalEvent(null)}
-                className="cursor-pointer rounded-full px-3 py-1 text-sm font-bold text-ink/60 hover:bg-paper"
+                className="cursor-pointer rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
               >
-                &times;
+                <X className="h-5 w-5" />
               </button>
             </div>
             <div className="max-h-[65vh] overflow-y-auto p-6">
@@ -434,7 +446,7 @@ export default function AdminEventsPage() {
                   No registrations recorded for this event yet.
                 </p>
               ) : (
-                <div className="divide-y divide-line">
+                <div className="divide-y divide-slate-100">
                   {registrations.map((reg) => (
                     <div key={reg.id} className="flex items-start justify-between gap-4 py-3.5">
                       <div>
@@ -466,4 +478,3 @@ export default function AdminEventsPage() {
     </div>
   );
 }
-

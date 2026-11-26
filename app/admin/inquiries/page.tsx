@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Building2, Clock, Eye, Mail, RefreshCw, Search, Trash2, X } from 'lucide-react';
 
 interface Inquiry {
   id: number;
@@ -97,133 +98,140 @@ export default function AdminInquiriesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-line">
+      <div className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-ink">
-            Client Inquiries & Consultation Requests
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand">
+            Inbound Leads
+          </span>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+            Client Inquiries &amp; Consultation Requests
           </h1>
-          <p className="text-sm text-ink/60 mt-0.5">
+          <p className="mt-1 text-xs text-ink/60 sm:text-sm">
             Messages and engineering consult inquiries received via the official contact form.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={fetchInquiries}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-ink/70 bg-white border border-line rounded-lg shadow-xs hover:bg-paper cursor-pointer transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>Refresh</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={fetchInquiries}
+          className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-ink/75 transition-colors hover:bg-slate-50"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          <span>Refresh</span>
+        </button>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-white border border-line shadow-xs">
-          <p className="text-xs uppercase tracking-wider font-bold text-ink/50">
-            Total Inquiries
-          </p>
-          <p className="text-2xl font-extrabold text-ink mt-1">
-            {inquiries.length}
-          </p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-ink/50">
+              Total Inquiries
+            </p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums text-ink">
+              {inquiries.length}
+            </p>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+            <Mail className="h-5 w-5" />
+          </div>
         </div>
-        <div className="p-4 rounded-xl bg-white border border-line shadow-xs">
-          <p className="text-xs uppercase tracking-wider font-bold text-ink/50">
-            Companies Reached
-          </p>
-          <p className="text-2xl font-extrabold text-ink mt-1">
-            {new Set(inquiries.map((i) => i.companyName).filter(Boolean)).size}
-          </p>
+
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-ink/50">
+              Companies Reached
+            </p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums text-ink">
+              {new Set(inquiries.map((i) => i.companyName).filter(Boolean)).size}
+            </p>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-deep">
+            <Building2 className="h-5 w-5" />
+          </div>
         </div>
-        <div className="p-4 rounded-xl bg-white border border-line shadow-xs">
-          <p className="text-xs uppercase tracking-wider font-bold text-ink/50">
-            Latest Received
-          </p>
-          <p className="text-sm font-bold text-ink mt-2 truncate">
-            {inquiries[0]
-              ? new Date(inquiries[0].createdAt).toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })
-              : 'None yet'}
-          </p>
+
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-ink/50">
+              Latest Received
+            </p>
+            <p className="mt-1.5 truncate text-sm font-bold text-ink">
+              {inquiries[0]
+                ? new Date(inquiries[0].createdAt).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
+                : 'None yet'}
+            </p>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <Clock className="h-5 w-5" />
+          </div>
         </div>
       </div>
 
       {/* Search Input */}
-      <div className="bg-white rounded-xl border border-line p-3 shadow-xs">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
         <div className="relative">
-          <svg
-            className="w-4 h-4 text-ink/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by client name, email, company, or message keyword..."
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-lg bg-paper/40 text-ink placeholder:text-ink/40 focus:outline-none focus:bg-white focus:ring-1 focus:ring-signal transition-colors"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none"
           />
         </div>
       </div>
 
       {/* Main Content Area */}
       {isLoading ? (
-        <div className="bg-white rounded-2xl border border-line p-12 text-center shadow-xs">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-signal border-t-transparent mx-auto mb-3" />
-          <p className="text-xs uppercase tracking-widest text-ink/50 font-bold">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-12 text-center shadow-xs">
+          <div className="mx-auto mb-3 h-7 w-7 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+          <p className="text-xs font-bold uppercase tracking-widest text-ink/50">
             Loading Inquiries...
           </p>
         </div>
       ) : filteredInquiries.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-line p-12 text-center shadow-xs">
-          <div className="w-12 h-12 rounded-full bg-paper flex items-center justify-center mx-auto mb-3 text-ink/40">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-12 text-center shadow-xs">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-ink/40">
+            <Mail className="h-6 w-6" />
           </div>
           <p className="text-sm font-bold text-ink">
             {searchQuery ? 'No matching inquiries found' : 'No inquiries received yet'}
           </p>
-          <p className="text-xs text-ink/60 mt-1 max-w-sm mx-auto">
+          <p className="mx-auto mt-1 max-w-sm text-xs text-ink/60">
             {searchQuery
               ? 'Try modifying your search term or clear the filter.'
               : 'Customer submissions through the /contact page will automatically appear here in real-time.'}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-line overflow-hidden shadow-xs">
+        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#FAFBFD] border-b border-line text-xs font-bold uppercase tracking-wider text-ink/60">
+              <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-ink/55">
                 <tr>
-                  <th className="py-3 px-4">Contact</th>
-                  <th className="py-3 px-4">Company</th>
-                  <th className="py-3 px-4">Message Snippet</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="px-5 py-4">Contact</th>
+                  <th className="px-4 py-4">Company</th>
+                  <th className="px-4 py-4">Message Snippet</th>
+                  <th className="px-4 py-4">Date</th>
+                  <th className="px-5 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody className="divide-y divide-slate-100">
                 {filteredInquiries.map((inq) => (
-                  <tr key={inq.id} className="hover:bg-paper/40 transition-colors">
-                    <td className="py-3.5 px-4">
+                  <tr key={inq.id} className="transition-colors hover:bg-slate-50/70">
+                    <td className="px-5 py-4">
                       <div className="font-bold text-ink">
                         {inq.firstName} {inq.lastName}
                       </div>
-                      <div className="text-xs text-ink/60 font-mono flex items-center gap-2 mt-0.5">
+                      <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-xs text-ink/60">
                         <a
                           href={`mailto:${inq.email}`}
-                          className="hover:text-signal transition-colors"
+                          className="transition-colors hover:text-deep"
                         >
                           {inq.email}
                         </a>
@@ -232,7 +240,7 @@ export default function AdminInquiriesPage() {
                             <span>&bull;</span>
                             <a
                               href={`tel:${inq.phone}`}
-                              className="hover:text-signal transition-colors"
+                              className="transition-colors hover:text-deep"
                             >
                               {inq.phone}
                             </a>
@@ -241,23 +249,21 @@ export default function AdminInquiriesPage() {
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 font-medium text-ink">
+                    <td className="px-4 py-4 font-medium text-ink">
                       {inq.companyName ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-paper text-ink/80 text-xs font-semibold">
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-deep">
                           {inq.companyName}
                         </span>
                       ) : (
-                        <span className="text-xs text-ink/40 italic">Individual</span>
+                        <span className="text-xs italic text-ink/40">Individual</span>
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4 max-w-md">
-                      <p className="text-xs text-ink/70 line-clamp-2">
-                        {inq.message}
-                      </p>
+                    <td className="max-w-md px-4 py-4">
+                      <p className="line-clamp-2 text-xs text-ink/70">{inq.message}</p>
                     </td>
 
-                    <td className="py-3.5 px-4 text-xs text-ink/50 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-4 py-4 text-xs text-ink/55">
                       {new Date(inq.createdAt).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
@@ -265,40 +271,33 @@ export default function AdminInquiriesPage() {
                       })}
                     </td>
 
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="whitespace-nowrap px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => setSelectedInquiry(inq)}
-                          className="p-1.5 text-xs font-semibold text-ink/70 hover:text-ink hover:bg-paper rounded-lg transition-colors cursor-pointer"
+                          className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2 text-ink/70 transition-colors hover:bg-slate-50 hover:text-ink"
                           title="View Full Message"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
+                          <Eye className="h-4 w-4" />
                         </button>
 
                         <a
                           href={`mailto:${inq.email}?subject=Re:%20Drivvize%20Consulting%20Inquiry`}
-                          className="p-1.5 text-xs font-semibold text-signal hover:bg-signal/10 rounded-lg transition-colors"
+                          className="rounded-xl border border-blue-200 bg-blue-50 p-2 text-deep transition-colors hover:bg-blue-100"
                           title="Reply via Email"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
+                          <Mail className="h-4 w-4" />
                         </a>
 
                         <button
                           type="button"
                           onClick={() => handleDelete(inq.id)}
                           disabled={deletingId === inq.id}
-                          className="p-1.5 text-xs font-semibold text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          className="cursor-pointer rounded-xl bg-rose-50 p-2 text-rose-600 transition-colors hover:bg-rose-100 disabled:opacity-50"
                           title="Delete Record"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -312,18 +311,18 @@ export default function AdminInquiriesPage() {
 
       {/* Inquiry Detail Modal */}
       {selectedInquiry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl border border-line shadow-2xl max-w-xl w-full p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-start justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-start justify-between bg-ink px-6 py-5 text-white">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-signal bg-signal/10 px-2 py-0.5 rounded">
+                <span className="rounded-full bg-signal px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink">
                   Inquiry #{selectedInquiry.id}
                 </span>
-                <h3 className="text-xl font-extrabold text-ink mt-1">
+                <h3 className="mt-2 text-xl font-extrabold">
                   {selectedInquiry.firstName} {selectedInquiry.lastName}
                 </h3>
                 {selectedInquiry.companyName && (
-                  <p className="text-xs font-semibold text-ink/60">
+                  <p className="text-xs font-semibold text-white/65">
                     {selectedInquiry.companyName}
                   </p>
                 )}
@@ -331,65 +330,69 @@ export default function AdminInquiriesPage() {
               <button
                 type="button"
                 onClick={() => setSelectedInquiry(null)}
-                className="text-ink/40 hover:text-ink text-xl font-bold cursor-pointer"
+                className="cursor-pointer rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
               >
-                &times;
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-paper/50 border border-line text-xs">
+            <div className="space-y-5 p-6 sm:p-7">
+              <div className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-xs sm:grid-cols-2">
+                <div>
+                  <span className="block font-bold uppercase tracking-wider text-ink/45">
+                    Email
+                  </span>
+                  <a
+                    href={`mailto:${selectedInquiry.email}`}
+                    className="font-mono font-semibold text-deep hover:underline"
+                  >
+                    {selectedInquiry.email}
+                  </a>
+                </div>
+                <div>
+                  <span className="block font-bold uppercase tracking-wider text-ink/45">
+                    Phone
+                  </span>
+                  <a
+                    href={`tel:${selectedInquiry.phone}`}
+                    className="font-mono font-semibold text-ink hover:underline"
+                  >
+                    {selectedInquiry.phone}
+                  </a>
+                </div>
+                <div className="sm:col-span-2">
+                  <span className="block font-bold uppercase tracking-wider text-ink/45">
+                    Received At
+                  </span>
+                  <span className="font-medium text-ink">
+                    {new Date(selectedInquiry.createdAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
               <div>
-                <span className="text-ink/40 font-bold block uppercase tracking-wider">Email</span>
-                <a
-                  href={`mailto:${selectedInquiry.email}`}
-                  className="font-mono text-ink font-semibold hover:text-signal"
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-ink/60">
+                  Inquiry Message
+                </label>
+                <div className="max-h-60 overflow-y-auto whitespace-pre-wrap rounded-2xl border border-slate-200 bg-slate-50/50 p-4 text-sm leading-relaxed text-ink">
+                  {selectedInquiry.message}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedInquiry(null)}
+                  className="cursor-pointer rounded-full border border-slate-200 px-5 py-2 text-xs font-bold text-ink/70 hover:bg-slate-50 hover:text-ink"
                 >
-                  {selectedInquiry.email}
-                </a>
-              </div>
-              <div>
-                <span className="text-ink/40 font-bold block uppercase tracking-wider">Phone</span>
-                <a
-                  href={`tel:${selectedInquiry.phone}`}
-                  className="font-mono text-ink font-semibold hover:text-signal"
-                >
-                  {selectedInquiry.phone}
-                </a>
-              </div>
-              <div className="col-span-2">
-                <span className="text-ink/40 font-bold block uppercase tracking-wider">Received At</span>
-                <span className="text-ink font-medium">
-                  {new Date(selectedInquiry.createdAt).toLocaleString()}
-                </span>
-              </div>
-            </div>
+                  Close
+                </button>
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-ink/60 mb-2">
-                Inquiry Message
-              </label>
-              <div className="p-4 rounded-xl bg-paper/30 border border-line text-sm text-ink leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto font-sans">
-                {selectedInquiry.message}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <button
-                type="button"
-                onClick={() => setSelectedInquiry(null)}
-                className="px-4 py-2 text-xs font-bold text-ink/60 hover:text-ink cursor-pointer"
-              >
-                Close
-              </button>
-
-              <div className="flex items-center gap-2">
                 <a
                   href={`mailto:${selectedInquiry.email}?subject=Re:%20Drivvize%20Consulting%20Inquiry`}
-                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold uppercase tracking-wider text-white bg-signal hover:bg-signal/90 rounded-lg shadow-sm transition-colors"
+                  className="inline-flex items-center gap-2 rounded-full bg-signal px-6 py-2.5 text-xs font-bold text-ink shadow-xs transition-colors hover:bg-yellow-400"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+                  <Mail className="h-3.5 w-3.5" />
                   <span>Reply via Email</span>
                 </a>
               </div>

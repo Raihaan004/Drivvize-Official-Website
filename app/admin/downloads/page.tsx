@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Download, FileDown, Mail, RefreshCw, Search, Trash2, TrendingUp, Users } from 'lucide-react';
 
 interface PdfDownloadRecord {
   id: number;
@@ -15,6 +16,8 @@ interface PdfDownloadRecord {
 const FIELD_OPTIONS = [
   'All Fields',
   'Functional Safety',
+  'Connected Mobility',
+  'Cybersecurity & Compliance',
   'Automotive Cybersecurity',
   'SOTIF',
 ];
@@ -95,7 +98,6 @@ export default function AdminDownloadsPage() {
     });
   }, [downloads, selectedField, searchQuery]);
 
-  // CSV Export utility
   const exportToCSV = () => {
     if (!filteredDownloads.length) return;
 
@@ -132,83 +134,97 @@ export default function AdminDownloadsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-line">
+      <div className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-ink">
-            Document Downloads & Lead Capture
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand">
+            Resource Analytics
+          </span>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+            Document Downloads &amp; Lead Capture
           </h1>
-          <p className="text-sm text-ink/60 mt-0.5">
-            Prospective clients and engineers who requested technical whitepapers via the /learn page.
+          <p className="mt-1 text-xs text-ink/60 sm:text-sm">
+            Prospective clients and engineers who requested technical whitepapers via the /learn
+            page.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={exportToCSV}
             disabled={filteredDownloads.length === 0}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-white bg-signal hover:bg-signal/90 rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-signal px-5 py-2.5 text-xs font-bold text-ink shadow-xs transition-colors hover:bg-yellow-400 disabled:opacity-50"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <FileDown className="h-3.5 w-3.5" />
             <span>Export CSV</span>
           </button>
 
           <button
             type="button"
             onClick={fetchDownloads}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-ink/70 bg-white border border-line rounded-lg shadow-xs hover:bg-paper cursor-pointer transition-colors"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-ink/75 transition-colors hover:bg-slate-50"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            <RefreshCw className="h-3.5 w-3.5" />
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-white border border-line shadow-xs">
-          <p className="text-xs uppercase tracking-wider font-bold text-ink/50">
-            Total Whitepapers Delivered
-          </p>
-          <p className="text-2xl font-extrabold text-ink mt-1">
-            {downloads.length}
-          </p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-ink/50">
+              Total Whitepapers Delivered
+            </p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums text-ink">
+              {downloads.length}
+            </p>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <Download className="h-5 w-5" />
+          </div>
         </div>
-        <div className="p-4 rounded-xl bg-white border border-line shadow-xs">
-          <p className="text-xs uppercase tracking-wider font-bold text-ink/50">
-            Unique Verified Leads
-          </p>
-          <p className="text-2xl font-extrabold text-ink mt-1">
-            {uniqueEmails}
-          </p>
+
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-ink/50">
+              Unique Verified Leads
+            </p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums text-ink">
+              {uniqueEmails}
+            </p>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-deep">
+            <Users className="h-5 w-5" />
+          </div>
         </div>
-        <div className="p-4 rounded-xl bg-white border border-line shadow-xs">
-          <p className="text-xs uppercase tracking-wider font-bold text-ink/50">
-            Lead Conversion Rate
-          </p>
-          <p className="text-2xl font-extrabold text-signal mt-1">
-            100%
-          </p>
+
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-ink/50">
+              Lead Conversion Rate
+            </p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums text-emerald-700">100%</p>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+            <TrendingUp className="h-5 w-5" />
+          </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white rounded-xl border border-line p-3 shadow-xs flex flex-col sm:flex-row items-center gap-3">
-        {/* Field Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs sm:flex-row">
+        <div className="flex w-full items-center gap-1.5 overflow-x-auto pb-1 sm:w-auto sm:pb-0">
           {FIELD_OPTIONS.map((field) => (
             <button
               key={field}
               type="button"
               onClick={() => setSelectedField(field)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors cursor-pointer ${
+              className={`cursor-pointer whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
                 selectedField === field
-                  ? 'bg-ink text-white shadow-xs'
-                  : 'text-ink/60 hover:text-ink hover:bg-paper'
+                  ? 'bg-ink text-white'
+                  : 'bg-slate-100 text-ink/65 hover:bg-slate-200 hover:text-ink'
               }`}
             >
               {field}
@@ -216,69 +232,60 @@ export default function AdminDownloadsPage() {
           ))}
         </div>
 
-        {/* Search */}
-        <div className="relative flex-1 w-full">
-          <svg
-            className="w-4 h-4 text-ink/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+        <div className="relative w-full flex-1">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search leads by email or guide title..."
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-lg bg-paper/40 text-ink placeholder:text-ink/40 focus:outline-none focus:bg-white focus:ring-1 focus:ring-signal transition-colors"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none"
           />
         </div>
       </div>
 
       {/* Table Section */}
       {isLoading ? (
-        <div className="bg-white rounded-2xl border border-line p-12 text-center shadow-xs">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-signal border-t-transparent mx-auto mb-3" />
-          <p className="text-xs uppercase tracking-widest text-ink/50 font-bold">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-12 text-center shadow-xs">
+          <div className="mx-auto mb-3 h-7 w-7 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+          <p className="text-xs font-bold uppercase tracking-widest text-ink/50">
             Loading Download Leads...
           </p>
         </div>
       ) : filteredDownloads.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-line p-12 text-center shadow-xs">
-          <div className="w-12 h-12 rounded-full bg-paper flex items-center justify-center mx-auto mb-3 text-ink/40">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-12 text-center shadow-xs">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-ink/40">
+            <Download className="h-6 w-6" />
           </div>
           <p className="text-sm font-bold text-ink">
             {searchQuery || selectedField !== 'All Fields'
               ? 'No matching download leads found'
               : 'No documents downloaded yet'}
           </p>
-          <p className="text-xs text-ink/60 mt-1 max-w-sm mx-auto">
-            When users request safety PDF whitepapers on /learn, their verified emails and document timestamps are recorded here.
+          <p className="mx-auto mt-1 max-w-sm text-xs text-ink/60">
+            When users request safety PDF whitepapers on /learn, their verified emails and document
+            timestamps are recorded here.
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-line overflow-hidden shadow-xs">
+        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#FAFBFD] border-b border-line text-xs font-bold uppercase tracking-wider text-ink/60">
+              <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-ink/55">
                 <tr>
-                  <th className="py-3 px-4">Lead Email</th>
-                  <th className="py-3 px-4">Document Requested</th>
-                  <th className="py-3 px-4">Field</th>
-                  <th className="py-3 px-4">Delivery Timestamp</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="px-5 py-4">Lead Email</th>
+                  <th className="px-4 py-4">Document Requested</th>
+                  <th className="px-4 py-4">Field</th>
+                  <th className="px-4 py-4">Delivery Timestamp</th>
+                  <th className="px-5 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody className="divide-y divide-slate-100">
                 {filteredDownloads.map((item) => (
-                  <tr key={item.id} className="hover:bg-paper/40 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-ink">
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-full bg-signal/10 text-signal flex items-center justify-center text-xs font-extrabold">
+                  <tr key={item.id} className="transition-colors hover:bg-slate-50/70">
+                    <td className="px-5 py-4 font-bold text-ink">
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-extrabold text-signal">
                           {item.email.charAt(0).toUpperCase()}
                         </span>
                         <a
@@ -287,29 +294,25 @@ export default function AdminDownloadsPage() {
                           )}&body=Hello,%0D%0A%0D%0AThank you for downloading our whitepaper: ${encodeURIComponent(
                             item.fileTitle,
                           )}.%0D%0A%0D%0AWould you be open to a brief discussion on how Drivvize can assist your engineering team?%0D%0A%0D%0ABest regards,%0D%0ADrivvize Team`}
-                          className="hover:text-signal transition-colors font-mono text-xs sm:text-sm"
+                          className="font-mono text-xs transition-colors hover:text-deep sm:text-sm"
                         >
                           {item.email}
                         </a>
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4">
-                      <div className="font-semibold text-ink text-xs sm:text-sm">
-                        {item.fileTitle}
-                      </div>
-                      <div className="text-[11px] text-ink/50 font-mono">
-                        {item.fileName}
-                      </div>
+                    <td className="px-4 py-4">
+                      <div className="text-xs font-bold text-ink sm:text-sm">{item.fileTitle}</div>
+                      <div className="font-mono text-[11px] text-ink/50">{item.fileName}</div>
                     </td>
 
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-paper text-ink/80 border border-line">
+                    <td className="px-4 py-4">
+                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 text-xs font-semibold text-ink/80">
                         {item.field}
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 text-xs text-ink/60 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-4 py-4 text-xs text-ink/60">
                       {new Date(item.downloadedAt).toLocaleString(undefined, {
                         month: 'short',
                         day: 'numeric',
@@ -319,30 +322,26 @@ export default function AdminDownloadsPage() {
                       })}
                     </td>
 
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="whitespace-nowrap px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <a
                           href={`mailto:${item.email}?subject=Follow-up:%20${encodeURIComponent(
                             item.fileTitle,
                           )}`}
-                          className="p-1.5 text-xs font-semibold text-signal hover:bg-signal/10 rounded-lg transition-colors"
+                          className="rounded-xl border border-blue-200 bg-blue-50 p-2 text-deep transition-colors hover:bg-blue-100"
                           title="Send Email"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
+                          <Mail className="h-4 w-4" />
                         </a>
 
                         <button
                           type="button"
                           onClick={() => handleDelete(item.id)}
                           disabled={deletingId === item.id}
-                          className="p-1.5 text-xs font-semibold text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          className="cursor-pointer rounded-xl bg-rose-50 p-2 text-rose-600 transition-colors hover:bg-rose-100 disabled:opacity-50"
                           title="Delete Lead"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>

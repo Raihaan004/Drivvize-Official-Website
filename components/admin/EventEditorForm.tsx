@@ -200,7 +200,7 @@ export function EventEditorForm({ mode, eventId, initialData }: EventEditorFormP
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs">
         <div>
           <Link
             href="/admin/events"

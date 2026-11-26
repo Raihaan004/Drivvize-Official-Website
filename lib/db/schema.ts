@@ -103,3 +103,42 @@ export const eventRegistrations = pgTable('event_registrations', {
 
 export type EventRegistration = typeof eventRegistrations.$inferSelect;
 export type NewEventRegistration = typeof eventRegistrations.$inferInsert;
+
+export const blogWriters = pgTable('blog_writers', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 120 }).notNull(),
+  title: varchar('title', { length: 160 }).default('Functional Safety Consultant').notNull(),
+  role: varchar('role', { length: 60 }).default('Managed Writer').notNull(),
+  email: varchar('email', { length: 255 }),
+  bio: text('bio'),
+  avatarColor: varchar('avatar_color', { length: 30 }).default('#1d3f6e').notNull(),
+  avatarUrl: text('avatar_url'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type BlogWriter = typeof blogWriters.$inferSelect;
+export type NewBlogWriter = typeof blogWriters.$inferInsert;
+
+export const blogComments = pgTable('blog_comments', {
+  id: serial('id').primaryKey(),
+  blogSlug: varchar('blog_slug', { length: 255 }).notNull(),
+  blogTitle: varchar('blog_title', { length: 255 }).notNull(),
+  authorName: varchar('author_name', { length: 120 }).notNull(),
+  authorEmail: varchar('author_email', { length: 255 }).notNull(),
+  comment: text('comment').notNull(),
+  status: varchar('status', { length: 30 }).default('approved').notNull(),
+  adminReply: text('admin_reply'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type BlogComment = typeof blogComments.$inferSelect;
+export type NewBlogComment = typeof blogComments.$inferInsert;
+
+export const blogViews = pgTable('blog_views', {
+  id: serial('id').primaryKey(),
+  blogSlug: varchar('blog_slug', { length: 255 }).notNull(),
+  visitorKey: varchar('visitor_key', { length: 128 }).notNull(),
+  viewedAt: timestamp('viewed_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type BlogView = typeof blogViews.$inferSelect;
