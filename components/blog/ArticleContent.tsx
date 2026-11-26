@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { isHtmlContent, sanitizeBlogHtml } from '@/lib/richText';
 
 interface ArticleContentProps {
   content: string;
@@ -18,7 +19,6 @@ function escapeHtml(raw: string): string {
 function formatInline(raw: string): string {
   let html = escapeHtml(raw);
 
-  // Links: allow only http(s):// or root-relative / paths
   html = html.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer" class="font-semibold text-deep underline decoration-signal decoration-2 underline-offset-4 hover:text-brand">$1</a>',
@@ -34,6 +34,16 @@ function formatInline(raw: string): string {
 }
 
 export function ArticleContent({ content }: ArticleContentProps) {
+  if (isHtmlContent(content)) {
+    const cleanHtml = sanitizeBlogHtml(content);
+    return (
+      <div
+        className="article-body article-rich-html"
+        dangerouslySetInnerHTML={{ __html: cleanHtml }}
+      />
+    );
+  }
+
   const lines = content.split('\n');
   const elements: React.ReactNode[] = [];
   let paragraphLines: string[] = [];
@@ -64,7 +74,7 @@ export function ArticleContent({ content }: ArticleContentProps) {
           {listItems.map((item, i) => (
             <li
               key={i}
-              className="leading-[1.7] pl-1"
+              className="pl-1 leading-[1.7]"
               dangerouslySetInnerHTML={{ __html: formatInline(item) }}
             />
           ))}
@@ -108,7 +118,7 @@ export function ArticleContent({ content }: ArticleContentProps) {
         elements.push(
           <pre
             key={`code-${index}`}
-            className="my-8 overflow-x-auto rounded-xl bg-ink p-5 font-mono text-xs sm:text-sm leading-relaxed text-white"
+            className="my-8 overflow-x-auto rounded-xl bg-ink p-5 font-mono text-xs leading-relaxed text-white sm:text-sm"
           >
             <code>{codeLines.join('\n')}</code>
           </pre>,
@@ -200,7 +210,7 @@ export function ArticleContent({ content }: ArticleContentProps) {
     elements.push(
       <pre
         key="final-code"
-        className="my-8 overflow-x-auto rounded-xl bg-ink p-5 font-mono text-xs sm:text-sm leading-relaxed text-white"
+        className="my-8 overflow-x-auto rounded-xl bg-ink p-5 font-mono text-xs leading-relaxed text-white sm:text-sm"
       >
         <code>{codeLines.join('\n')}</code>
       </pre>,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -13,9 +13,8 @@ import {
 } from '@/lib/blogConstants';
 import { ArticleContent } from '@/components/blog/ArticleContent';
 import PostCard from '@/components/learn/PostCard';
+import { RichTextEditor } from './RichTextEditor';
 import {
-  MARKDOWN_TOOLS,
-  applyMarkdownTool,
   compressImageToDataUrl,
   formatFileSizeLabel,
   readDocumentAsDataUrl,
@@ -48,7 +47,6 @@ const CUSTOM_CATEGORY_VALUE = '__custom__';
 
 export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProps) {
   const router = useRouter();
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const initialCategory = initialData?.category || 'Functional Safety';
   const isKnownInitialCategory = (BLOG_CATEGORIES as readonly string[]).includes(initialCategory);
@@ -108,21 +106,6 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
     }
   };
 
-  const handleToolbarClick = (index: number) => {
-    const tool = MARKDOWN_TOOLS[index];
-    const { nextValue, selectionStart, selectionEnd } = applyMarkdownTool(
-      textareaRef.current,
-      content,
-      tool,
-    );
-    handleContentChange(nextValue);
-    requestAnimationFrame(() => {
-      if (!textareaRef.current) return;
-      textareaRef.current.focus();
-      textareaRef.current.setSelectionRange(selectionStart, selectionEnd);
-    });
-  };
-
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -161,7 +144,8 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) {
+    const plainContent = content.replace(/<[^>]+>/g, '').replace(/&nbsp;/gi, ' ').trim();
+    if (!title.trim() || !plainContent) {
       setError('Title and Article Content are required.');
       return;
     }
@@ -669,7 +653,7 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
         <div className="rounded-2xl border border-line bg-white p-6 shadow-xs">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <label className="block text-xs font-bold uppercase tracking-wider text-ink/70">
-              Article Body Content (Markdown) *
+              Article Body Content *
             </label>
             <div className="flex items-center gap-1 rounded-full bg-paper p-1">
               {(['write', 'preview', 'card'] as const).map((tab) => (
@@ -690,42 +674,16 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
           </div>
 
           {editorTab === 'write' && (
-            <>
-              <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-line bg-paper p-2">
-                {MARKDOWN_TOOLS.map((tool, idx) => (
-                  <button
-                    key={tool.label}
-                    type="button"
-                    title={tool.title}
-                    onClick={() => handleToolbarClick(idx)}
-                    className="cursor-pointer rounded-lg border border-line bg-white px-2.5 py-1 text-[11px] font-bold text-ink transition-colors hover:bg-signal/30"
-                  >
-                    {tool.label}
-                  </button>
-                ))}
-                <span className="ml-auto font-mono text-[11px] text-ink/45">
-                  {content.trim() ? `${content.trim().split(/\s+/).length} words` : '0 words'}
-                </span>
-              </div>
-              <textarea
-                ref={textareaRef}
-                rows={15}
-                required
-                value={content}
-                onChange={(e) => handleContentChange(e.target.value)}
-                placeholder="Write the full article content here using Markdown headings (##), bullet points (-), blockquotes (>), links, code blocks, and **bold** text..."
-                className="w-full rounded-xl border border-line bg-paper p-4 font-mono text-xs leading-relaxed text-ink placeholder-ink/40 focus:border-brand focus:bg-white focus:outline-none sm:text-sm"
-              />
-            </>
+            <RichTextEditor value={content} onChange={handleContentChange} />
           )}
 
           {editorTab === 'preview' && (
             <div className="rounded-xl border border-line bg-white p-6">
-              {content.trim() ? (
+              {content.replace(/<[^>]+>/g, '').trim() ? (
                 <ArticleContent content={content} />
               ) : (
                 <p className="py-10 text-center text-sm text-ink/45">
-                  Start writing markdown in the Write tab to preview your article.
+                  Start writing in the Write tab to preview your formatted article.
                 </p>
               )}
             </div>

@@ -75,6 +75,8 @@ export function slugifyBlogTitle(text: string): string {
 export function estimateReadTime(content: string): string {
   const plain = content
     .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
     .replace(/[#>*_`[\]()-]/g, ' ')
     .trim();
   const words = plain ? plain.split(/\s+/).length : 0;
