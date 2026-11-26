@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { count, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { blogs, contactSubmissions, pdfDownloads } from '@/lib/db/schema';
+import { blogs, contactSubmissions, events, eventRegistrations, pdfDownloads } from '@/lib/db/schema';
 import { getAdminSession } from '@/lib/adminAuth';
-
 
 export async function GET() {
   const session = await getAdminSession();
@@ -14,12 +13,16 @@ export async function GET() {
   try {
     const [
       [{ value: totalBlogs }],
+      [{ value: totalEvents }],
+      [{ value: totalRegistrations }],
       [{ value: totalInquiries }],
       [{ value: totalDownloads }],
       recentInquiries,
       recentDownloads,
     ] = await Promise.all([
       db.select({ value: count() }).from(blogs),
+      db.select({ value: count() }).from(events),
+      db.select({ value: count() }).from(eventRegistrations),
       db.select({ value: count() }).from(contactSubmissions),
       db.select({ value: count() }).from(pdfDownloads),
       db
@@ -38,6 +41,8 @@ export async function GET() {
       success: true,
       stats: {
         totalBlogs: Number(totalBlogs || 0),
+        totalEvents: Number(totalEvents || 0),
+        totalRegistrations: Number(totalRegistrations || 0),
         totalInquiries: Number(totalInquiries || 0),
         totalDownloads: Number(totalDownloads || 0),
       },

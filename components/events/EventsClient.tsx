@@ -6,6 +6,7 @@ import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
 import { IMG } from '@/components/premium-home/data';
 import { Reveal } from '@/components/premium-home/hooks';
+import type { PublicPastEvent, PublicUpcomingEvent } from '@/lib/eventQueries';
 import {
   dayRange,
   icsFor,
@@ -81,9 +82,12 @@ function Hosts({ names, dark = false }: { names: string[]; dark?: boolean }) {
 function useCountdown(iso?: string) {
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
-    setNow(Date.now());
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
+    const initTimer = window.setTimeout(() => setNow(Date.now()), 0);
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => {
+      window.clearTimeout(initTimer);
+      window.clearInterval(t);
+    };
   }, []);
   if (!iso || now === null) return null;
   const ms = Math.max(0, new Date(iso).getTime() - now);
@@ -96,15 +100,6 @@ function useCountdown(iso?: string) {
   };
 }
 
-const registerHref = (e: DrivvizeEvent) =>
-  `mailto:consult@drivvize.com?subject=${encodeURIComponent(
-    `${e.start ? 'Registration' : 'Notify me'}: ${e.title}`
-  )}&body=${encodeURIComponent(
-    `I would like to ${e.start ? 'register for' : 'be notified about'} "${e.title}"${
-      e.start ? ` (${longDate(e)})` : ''
-    }.\n\nName:\nCompany:\nPhone:`
-  )}`;
-
 function addToCalendar(e: DrivvizeEvent) {
   const url = URL.createObjectURL(new Blob([icsFor(e)], { type: 'text/calendar' }));
   const a = document.createElement('a');
@@ -114,12 +109,213 @@ function addToCalendar(e: DrivvizeEvent) {
   URL.revokeObjectURL(url);
 }
 
-function Featured({ e }: { e: DrivvizeEvent }) {
+function RegistrationModal({
+  event,
+  onClose,
+}: {
+  event: PublicUpcomingEvent;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
+  const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const handleSubmit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/events/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event.dbId ?? null,
+          eventSlug: event.id,
+          eventTitle: event.title,
+          name,
+          email,
+          phone,
+          company,
+          notes,
+        }),
+      });
+      const data = (await res.json()) as {
+        success?: boolean;
+        message?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.success) {
+        setError(data.error || 'Could not complete registration.');
+        return;
+      }
+      setSuccessMsg(data.message || 'Registration confirmed.');
+    } catch {
+      setError('Network error while submitting registration.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-xs">
+      <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-line bg-white text-ink shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-line bg-ink px-6 py-5 text-white">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-signal">
+              {event.start ? 'Event Registration' : 'Notify Me'}
+            </p>
+            <h3 className="mt-1 text-lg font-semibold leading-snug">{event.title}</h3>
+            <p className="mt-1 text-xs text-white/65">
+              {longDate(event)}
+              {event.time ? ` · ${event.time}` : ''}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close registration modal"
+            className="cursor-pointer rounded-full px-2.5 py-1 text-lg text-white/60 hover:bg-white/10 hover:text-white"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div className="p-6">
+          {successMsg ? (
+            <div className="space-y-4 py-4 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold">
+                ✓
+              </div>
+              <p className="text-base font-bold text-ink">{successMsg}</p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="cursor-pointer rounded-full bg-ink px-6 py-2.5 text-xs font-bold text-white hover:bg-deep"
+              >
+                Done
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+                  {error}
+                </p>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink/70">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    className="w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-brand focus:bg-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink/70">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className="w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-brand focus:bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink/70">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91 ..."
+                    className="w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-brand focus:bg-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink/70">
+                    Company / OEM
+                  </label>
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    placeholder="Organization"
+                    className="w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-brand focus:bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink/70">
+                  Questions or Topics of Interest (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Any specific standard or topic you'd like covered..."
+                  className="w-full rounded-xl border border-line bg-paper p-3 text-sm text-ink focus:border-brand focus:bg-white focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="cursor-pointer rounded-full border border-line px-5 py-2.5 text-xs font-bold text-ink hover:bg-paper"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="cursor-pointer rounded-full bg-signal px-6 py-2.5 text-xs font-bold text-ink hover:bg-yellow-400 disabled:opacity-60"
+                >
+                  {submitting
+                    ? 'Submitting...'
+                    : event.start
+                    ? 'Confirm Registration'
+                    : 'Notify Me'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Featured({
+  e,
+  onRegister,
+}: {
+  e: PublicUpcomingEvent;
+  onRegister: (event: PublicUpcomingEvent) => void;
+}) {
   const c = useCountdown(e.start);
   return (
     <Reveal className="mb-20">
       <div id={e.id} className="relative isolate overflow-hidden bg-ink text-white scroll-mt-28">
-        <img src={e.image} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />
+        <img src={e.image} alt={e.title} className="absolute inset-0 -z-20 h-full w-full object-cover" />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(10,16,24,0.95),rgba(10,16,24,0.7)_55%,rgba(10,16,24,0.5))]" />
         <div className="grid gap-12 p-8 sm:p-12 lg:grid-cols-12 lg:p-16">
           <div className="lg:col-span-7">
@@ -178,17 +374,32 @@ function Featured({ e }: { e: DrivvizeEvent }) {
               </div>
             )}
             <div className="flex flex-wrap gap-3">
-              <a
-                href={registerHref(e)}
-                className="group inline-flex items-center gap-3 rounded-full bg-signal px-7 py-4 text-[14px] font-bold text-ink transition-transform hover:-translate-y-0.5"
-              >
-                {e.start ? 'Register' : 'Notify me'}
-                <Arrow className="transition-transform group-hover:translate-x-1.5" />
-              </a>
+              {e.registrationUrl ? (
+                <a
+                  href={e.registrationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Register via Google Form"
+                  className="group inline-flex items-center gap-3 rounded-full bg-signal px-7 py-4 text-[14px] font-bold text-ink transition-transform hover:-translate-y-0.5"
+                >
+                  {e.start ? 'Register' : 'Notify me'}
+                  <Arrow className="transition-transform group-hover:translate-x-1.5" />
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onRegister(e)}
+                  className="group inline-flex cursor-pointer items-center gap-3 rounded-full bg-signal px-7 py-4 text-[14px] font-bold text-ink transition-transform hover:-translate-y-0.5"
+                >
+                  {e.start ? 'Register' : 'Notify me'}
+                  <Arrow className="transition-transform group-hover:translate-x-1.5" />
+                </button>
+              )}
               {e.start && (
                 <button
+                  type="button"
                   onClick={() => addToCalendar(e)}
-                  className="rounded-full border border-white/40 px-7 py-4 text-[14px] font-semibold transition-colors hover:bg-white hover:text-ink"
+                  className="cursor-pointer rounded-full border border-white/40 px-7 py-4 text-[14px] font-semibold transition-colors hover:bg-white hover:text-ink"
                 >
                   Add to calendar
                 </button>
@@ -205,20 +416,23 @@ function EventRow({
   e,
   open,
   toggle,
+  onRegister,
   i,
 }: {
-  e: DrivvizeEvent;
+  e: PublicUpcomingEvent;
   open: boolean;
   toggle: () => void;
+  onRegister: (event: PublicUpcomingEvent) => void;
   i: number;
 }) {
   return (
     <Reveal delay={(i % 3) * 70}>
-      <article className="border-t border-ink/10">
+      <article id={e.id} className="border-t border-ink/10 scroll-mt-28">
         <button
+          type="button"
           onClick={toggle}
           aria-expanded={open}
-          className="group grid w-full grid-cols-[4.5rem_1fr] items-center gap-5 py-8 text-left sm:grid-cols-[7rem_1fr_auto] sm:gap-10"
+          className="group grid w-full cursor-pointer grid-cols-[4.5rem_1fr] items-center gap-5 py-8 text-left sm:grid-cols-[7rem_1fr_auto] sm:gap-10"
         >
           <div className="text-center sm:text-left">
             {e.start ? (
@@ -280,7 +494,7 @@ function EventRow({
           <div className="overflow-hidden">
             <div className="grid gap-10 pb-12 sm:pl-[9rem] lg:grid-cols-12">
               <div className="relative aspect-[4/3] overflow-hidden bg-deep lg:col-span-4">
-                <img src={e.image} alt="" loading="lazy" className="h-full w-full object-cover" />
+                <img src={e.image} alt={e.title} loading="lazy" className="h-full w-full object-cover" />
               </div>
               <div className="lg:col-span-8">
                 <p className="eyebrow mb-4 !text-[11px] text-brand">About this event</p>
@@ -301,7 +515,7 @@ function EventRow({
                   ))}
                 </dl>
 
-                {e.agenda && (
+                {e.agenda && e.agenda.length > 0 && (
                   <ul className="mt-8 grid gap-3 sm:grid-cols-2">
                     {e.agenda.map((a) => (
                       <li key={a} className="flex gap-3 text-[15px] text-ink/75">
@@ -315,17 +529,32 @@ function EventRow({
                 <div className="mt-8 flex flex-wrap items-center justify-between gap-6">
                   <Hosts names={e.hosts} />
                   <div className="flex flex-wrap gap-3">
-                    <a
-                      href={registerHref(e)}
-                      className="group/b inline-flex items-center gap-3 rounded-full bg-signal px-6 py-3.5 text-[13px] font-bold transition-transform hover:-translate-y-0.5"
-                    >
-                      {e.start ? 'Register' : 'Notify me'}
-                      <Arrow className="transition-transform group-hover/b:translate-x-1.5" />
-                    </a>
+                    {e.registrationUrl ? (
+                      <a
+                        href={e.registrationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Register via Google Form"
+                        className="group/b inline-flex items-center gap-3 rounded-full bg-signal px-6 py-3.5 text-[13px] font-bold transition-transform hover:-translate-y-0.5"
+                      >
+                        {e.start ? 'Register' : 'Notify me'}
+                        <Arrow className="transition-transform group-hover/b:translate-x-1.5" />
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onRegister(e)}
+                        className="group/b inline-flex cursor-pointer items-center gap-3 rounded-full bg-signal px-6 py-3.5 text-[13px] font-bold transition-transform hover:-translate-y-0.5"
+                      >
+                        {e.start ? 'Register' : 'Notify me'}
+                        <Arrow className="transition-transform group-hover/b:translate-x-1.5" />
+                      </button>
+                    )}
                     {e.start && (
                       <button
+                        type="button"
                         onClick={() => addToCalendar(e)}
-                        className="rounded-full border border-ink px-6 py-3.5 text-[13px] font-bold transition-colors hover:bg-ink hover:text-white"
+                        className="cursor-pointer rounded-full border border-ink px-6 py-3.5 text-[13px] font-bold transition-colors hover:bg-ink hover:text-white"
                       >
                         Add to calendar
                       </button>
@@ -341,19 +570,27 @@ function EventRow({
   );
 }
 
-export function EventsClient() {
+export function EventsClient({
+  initialUpcoming = UPCOMING,
+  initialPast = PAST,
+}: {
+  initialUpcoming?: PublicUpcomingEvent[];
+  initialPast?: PublicPastEvent[];
+}) {
   const [kind, setKind] = useState<KindFilter>('all');
   const [scope, setScope] = useState<'upcoming' | 'past'>('upcoming');
   const [open, setOpen] = useState<string | null>(null);
+  const [registerEvent, setRegisterEvent] = useState<PublicUpcomingEvent | null>(null);
 
-  const up = UPCOMING.filter((e) => kind === 'all' || e.kind === kind).sort((a, b) =>
-    (a.start ?? '9').localeCompare(b.start ?? '9')
-  );
-  const featured = up.find((e) => e.start);
+  const up = initialUpcoming
+    .filter((e) => kind === 'all' || e.kind === kind)
+    .sort((a, b) => (a.start ?? '9').localeCompare(b.start ?? '9'));
+  const featured =
+    up.find((e) => e.isFeatured && e.start) ?? up.find((e) => e.start) ?? up.find((e) => e.isFeatured);
   const rest = up.filter((e) => e !== featured);
-  const past = PAST.filter((e) => kind === 'all' || e.kind === kind).sort(
-    (a, b) => b.year - a.year
-  );
+  const past = initialPast
+    .filter((e) => kind === 'all' || e.kind === kind)
+    .sort((a, b) => b.year - a.year);
 
   return (
     <div className="bg-white text-ink selection:bg-signal selection:text-ink">
@@ -362,7 +599,7 @@ export function EventsClient() {
         <section className="relative isolate flex min-h-[58svh] items-end overflow-hidden bg-ink text-white">
           <img
             src={IMG.stage}
-            alt=""
+            alt="Drivvize engineering events and conferences"
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />
           <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(10,16,24,0.88),rgba(10,16,24,0.35)),linear-gradient(0deg,rgba(10,16,24,0.7),transparent_50%)]" />
@@ -399,10 +636,11 @@ export function EventsClient() {
                 {(['upcoming', 'past'] as const).map((s) => (
                   <button
                     key={s}
+                    type="button"
                     role="tab"
                     aria-selected={scope === s}
                     onClick={() => setScope(s)}
-                    className={`relative pb-3 text-[13px] font-bold uppercase tracking-[0.14em] transition-colors ${
+                    className={`relative cursor-pointer pb-3 text-[13px] font-bold uppercase tracking-[0.14em] transition-colors ${
                       scope === s ? 'text-ink' : 'text-ink/40 hover:text-ink/70'
                     }`}
                   >
@@ -425,10 +663,11 @@ export function EventsClient() {
                 ).map(([k, l]) => (
                   <button
                     key={k}
+                    type="button"
                     role="tab"
                     aria-selected={kind === k}
                     onClick={() => setKind(k)}
-                    className={`rounded-full px-5 py-2.5 text-[13px] font-bold transition-colors ${
+                    className={`cursor-pointer rounded-full px-5 py-2.5 text-[13px] font-bold transition-colors ${
                       kind === k
                         ? 'bg-ink text-white'
                         : 'text-ink/55 hover:bg-paper hover:text-ink'
@@ -442,7 +681,7 @@ export function EventsClient() {
 
             {scope === 'upcoming' ? (
               <div key={`u-${kind}`}>
-                {featured && <Featured e={featured} />}
+                {featured && <Featured e={featured} onRegister={setRegisterEvent} />}
                 {rest.length > 0 && (
                   <div>
                     {featured && (
@@ -458,6 +697,7 @@ export function EventsClient() {
                         i={i}
                         open={open === e.id}
                         toggle={() => setOpen(open === e.id ? null : e.id)}
+                        onRegister={setRegisterEvent}
                       />
                     ))}
                     <div className="border-t border-ink/10" />
@@ -480,7 +720,7 @@ export function EventsClient() {
                       <div className="relative aspect-[4/3] overflow-hidden bg-deep">
                         <img
                           src={e.image}
-                          alt=""
+                          alt={e.title}
                           loading="lazy"
                           className="h-full w-full object-cover grayscale transition-all duration-[1400ms] group-hover:scale-105 group-hover:grayscale-0"
                         />
@@ -496,6 +736,11 @@ export function EventsClient() {
                       <h3 className="mt-2 text-2xl font-light leading-snug tracking-tight">
                         {e.title}
                       </h3>
+                      {e.about && (
+                        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink/60">
+                          {e.about}
+                        </p>
+                      )}
                     </article>
                   </Reveal>
                 ))}
@@ -529,6 +774,10 @@ export function EventsClient() {
         </section>
       </main>
       <Footer />
+
+      {registerEvent && (
+        <RegistrationModal event={registerEvent} onClose={() => setRegisterEvent(null)} />
+      )}
     </div>
   );
 }

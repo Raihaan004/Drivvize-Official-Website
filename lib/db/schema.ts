@@ -59,3 +59,47 @@ export const blogEngagements = pgTable('blog_engagements', {
 });
 
 export type BlogEngagement = typeof blogEngagements.$inferSelect;
+
+export const events = pgTable('events', {
+  id: serial('id').primaryKey(),
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
+  title: varchar('title', { length: 255 }).notNull(),
+  kind: varchar('kind', { length: 20 }).default('internal').notNull(),
+  format: varchar('format', { length: 20 }).default('Online').notNull(),
+  status: varchar('status', { length: 20 }).default('upcoming').notNull(),
+  startDate: timestamp('start_date', { withTimezone: true }),
+  endDate: timestamp('end_date', { withTimezone: true }),
+  timeLabel: varchar('time_label', { length: 120 }),
+  location: varchar('location', { length: 255 }).default('Live online session').notNull(),
+  hosts: text('hosts').default('["Drivvize Engineering"]').notNull(),
+  about: text('about').notNull(),
+  agenda: text('agenda'),
+  tags: text('tags'),
+  role: varchar('role', { length: 120 }),
+  year: integer('year'),
+  image: text('image'),
+  registrationUrl: text('registration_url'),
+  isFeatured: boolean('is_featured').default(false).notNull(),
+  isPublished: boolean('is_published').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type EventRow = typeof events.$inferSelect;
+export type NewEventRow = typeof events.$inferInsert;
+
+export const eventRegistrations = pgTable('event_registrations', {
+  id: serial('id').primaryKey(),
+  eventId: integer('event_id'),
+  eventSlug: varchar('event_slug', { length: 255 }).notNull(),
+  eventTitle: varchar('event_title', { length: 255 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  phone: varchar('phone', { length: 60 }),
+  company: varchar('company', { length: 255 }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type EventRegistration = typeof eventRegistrations.$inferSelect;
+export type NewEventRegistration = typeof eventRegistrations.$inferInsert;

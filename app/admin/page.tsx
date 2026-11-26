@@ -5,6 +5,8 @@ import Link from 'next/link';
 
 interface AdminStats {
   totalBlogs: number;
+  totalEvents: number;
+  totalRegistrations: number;
   totalInquiries: number;
   totalDownloads: number;
 }
@@ -32,6 +34,8 @@ interface Download {
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats>({
     totalBlogs: 0,
+    totalEvents: 0,
+    totalRegistrations: 0,
     totalInquiries: 0,
     totalDownloads: 0,
   });
@@ -69,7 +73,7 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/admin/blogs/new"
             className="inline-flex items-center gap-2 rounded-full bg-signal px-5 py-2.5 text-xs font-bold text-ink shadow-xs hover:bg-yellow-400 transition-all cursor-pointer"
@@ -78,6 +82,12 @@ export default function AdminDashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             <span>Write New Blog</span>
+          </Link>
+          <Link
+            href="/admin/events/new"
+            className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-deep transition-all cursor-pointer"
+          >
+            <span>+ Post New Event</span>
           </Link>
           <Link
             href="/admin/inquiries"
@@ -162,24 +172,27 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card 4: Neon Database Status */}
+        {/* Card 4: Events */}
         <div className="rounded-2xl bg-white p-6 border border-line shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink/50">
-            <span className="text-xs font-bold uppercase tracking-wider">Neon Database</span>
-            <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-              </span>
+            <span className="text-xs font-bold uppercase tracking-wider">Events</span>
+            <div className="h-9 w-9 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
           </div>
           <div className="mt-4">
-            <div className="text-xl font-bold text-emerald-700 flex items-center gap-2">
-              <span>Postgres Active</span>
+            <div className="text-3xl font-extrabold text-ink tabular-nums">
+              {isLoading ? '...' : stats.totalEvents}
             </div>
-            <p className="mt-1 text-xs text-ink/55">
-              Production branch linked &amp; responsive
-            </p>
+            <Link
+              href="/admin/events"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline"
+            >
+              <span>Manage events ({stats.totalRegistrations} regs)</span>
+              <span>&rarr;</span>
+            </Link>
           </div>
         </div>
       </div>

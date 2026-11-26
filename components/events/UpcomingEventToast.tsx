@@ -2,35 +2,57 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { UPCOMING, month, dayRange } from './events-data';
+import { UPCOMING, month, dayRange, type DrivvizeEvent } from './events-data';
+
+interface EventsApiResponse {
+  success?: boolean;
+  upcoming?: (DrivvizeEvent & { isFeatured?: boolean })[];
+}
 
 export default function UpcomingEventToast() {
-  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-
-  // Pick the nearest upcoming event with a valid start date
-  const nextEvent = UPCOMING.find((e) => e.start) || UPCOMING[0];
+  const [nextEvent, setNextEvent] = useState<DrivvizeEvent | null>(
+    () => UPCOMING.find((e) => e.start) || UPCOMING[0] || null,
+  );
 
   useEffect(() => {
-    setMounted(true);
+    let active = true;
 
     try {
-      const isDismissed = sessionStorage.getItem('drivvize_event_toast_dismissed');
-      if (isDismissed === 'true') {
-        setDismissed(true);
+      if (sessionStorage.getItem('drivvize_event_toast_dismissed') === 'true') {
         return;
       }
     } catch {
-      // Ignore sessionStorage exceptions in strict environments
+      // Ignore sessionStorage exceptions
     }
 
-    // Smooth delay before presenting notification (1.2s after mount)
-    const timer = setTimeout(() => {
-      setVisible(true);
+    fetch('/api/events')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: EventsApiResponse | null) => {
+        if (!active || !data?.success || !Array.isArray(data.upcoming) || data.upcoming.length === 0) {
+          return;
+        }
+        const picked =
+          data.upcoming.find((e) => e.isFeatured && e.start) ??
+          data.upcoming.find((e) => e.start) ??
+          data.upcoming[0];
+        if (picked) {
+          setNextEvent(picked);
+        }
+      })
+      .catch(() => {
+        // Keep starter fallback event
+      });
+
+    const timer = window.setTimeout(() => {
+      if (active) setVisible(true);
     }, 1200);
 
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   const handleDismiss = () => {
@@ -46,7 +68,7 @@ export default function UpcomingEventToast() {
     }
   };
 
-  if (!mounted || dismissed || !nextEvent) {
+  if (dismissed || !nextEvent) {
     return null;
   }
 
@@ -60,10 +82,8 @@ export default function UpcomingEventToast() {
       }`}
     >
       <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-[#0a1018]/95 p-5 text-white shadow-[0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl">
-        {/* Subtle top signal yellow accent line */}
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-signal to-transparent" />
 
-        {/* Top Header: Eyebrow + Live Indicator + Format Badge + Close Button */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
@@ -79,9 +99,10 @@ export default function UpcomingEventToast() {
           </div>
 
           <button
+            type="button"
             onClick={handleDismiss}
             aria-label="Close notification"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white cursor-pointer"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
           >
             <svg
               className="h-3.5 w-3.5"
@@ -98,15 +119,11 @@ export default function UpcomingEventToast() {
           </button>
         </div>
 
-        {/* Event Content */}
         <div className="mt-3">
           <h4 className="text-[15px] font-semibold leading-snug tracking-tight text-white transition-colors hover:text-signal">
-            <Link href={`/events#${nextEvent.id}`}>
-              {nextEvent.title}
-            </Link>
+            <Link href={`/events#${nextEvent.id}`}>{nextEvent.title}</Link>
           </h4>
 
-          {/* Date & Time with calendar icon */}
           <div className="mt-2.5 flex items-center gap-2 text-[12.5px] text-white/75">
             <svg
               className="h-4 w-4 shrink-0 text-signal"
@@ -128,12 +145,11 @@ export default function UpcomingEventToast() {
             {nextEvent.time && (
               <>
                 <span className="text-white/30">•</span>
-                <span className="text-white/60 truncate">{nextEvent.time.split(',')[0]}</span>
+                <span className="truncate text-white/60">{nextEvent.time.split(',')[0]}</span>
               </>
             )}
           </div>
 
-          {/* Location / Host note */}
           <div className="mt-1 flex items-center gap-2 text-[12px] text-white/50">
             <svg
               className="h-3.5 w-3.5 shrink-0 text-white/40"
@@ -151,11 +167,10 @@ export default function UpcomingEventToast() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
           <Link
             href={`/events#${nextEvent.id}`}
-            className="group inline-flex items-center justify-center gap-1.5 rounded-full bg-signal px-4 py-2 text-xs font-bold text-ink transition-all hover:bg-signal/90 hover:scale-[1.02] active:scale-[0.98] shadow-sm cursor-pointer"
+            className="group inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-full bg-signal px-4 py-2 text-xs font-bold text-ink shadow-sm transition-all hover:scale-[1.02] hover:bg-signal/90 active:scale-[0.98]"
           >
             <span>View event details</span>
             <svg
@@ -174,8 +189,9 @@ export default function UpcomingEventToast() {
           </Link>
 
           <button
+            type="button"
             onClick={handleDismiss}
-            className="text-[11.5px] font-medium text-white/45 transition-colors hover:text-white cursor-pointer"
+            className="cursor-pointer text-[11.5px] font-medium text-white/45 transition-colors hover:text-white"
           >
             Dismiss
           </button>
