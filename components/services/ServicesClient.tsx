@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
-import { Photo, Reveal } from '@/components/premium-home/hooks';
 import { IMG } from '@/components/premium-home/data';
 import ServiceStory, { type ServiceItem } from './ServiceStory';
+import { TrainingsSection } from './TrainingsSection';
 
 const FUSA: ServiceItem[] = [
   {
@@ -75,42 +75,6 @@ const CYBER: ServiceItem[] = [
     title: 'Vulnerability Analysis',
     image: IMG.code,
     body: 'Vulnerability analysis is a continuous activity that is initiated during TARA and is continued during SW architecture, verification and validation and extends after SOP. It is also used to update threat scenarios, refine cybersecurity claims and influences architectural decisions. We bring in our deep expertise in Systems thinking and Software to identify, mitigate and manage the vulnerabilities of your product.',
-  },
-];
-
-const TRAINING_GROUPS = [
-  {
-    name: 'Foundations',
-    items: [
-      'Introduction to Functional Safety (FuSa)',
-      'Introduction to Cybersecurity (ISO 21434)',
-      'Introduction to EU Cyber Resilience Act (EU CRA)',
-    ],
-  },
-  {
-    name: 'ISO 26262 by part',
-    items: [
-      'ISO 26262 Part-4 Systems Safety Training',
-      'ISO 26262 Part-5 Hardware Safety Training',
-      'ISO 26262 Part-6 Software Safety Training',
-      'ISO 26262 Part-7 Manufacturing Training',
-    ],
-  },
-  {
-    name: 'Specialised & customized',
-    items: [
-      'ISO 26262 & ISO 21434 Customized Trainings',
-      'ISO/PAS 21448 - SOTIF Training',
-      'How to develop an SEooC - Training',
-      'PAS 8800 Training',
-    ],
-  },
-  {
-    name: 'Certification',
-    items: [
-      'ISO 26262 Certification (4-day) Training',
-      'ISO 21434 Certification (3-day) Training',
-    ],
   },
 ];
 
@@ -249,76 +213,7 @@ export function ServicesClient() {
         />
 
         {/* trainings */}
-        <section id="trainings" className="scroll-mt-32 bg-paper py-32 lg:py-44">
-          <div className="mx-auto max-w-[1320px] px-6 lg:px-10">
-            <Reveal className="mb-16 lg:mb-24">
-              <p className="eyebrow mb-6 text-brand">Trainings</p>
-              <h2 className="title text-[clamp(2.4rem,5.4vw,4.8rem)] text-ink">
-                Practical, <b>from day one.</b>
-              </h2>
-            </Reveal>
-
-            <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-20">
-              <Photo
-                src={IMG.presenting}
-                alt="Trainer presenting to a group"
-                className="aspect-[4/3] lg:col-span-6"
-                speed={0.06}
-              />
-              <Reveal className="lg:col-span-6" delay={150}>
-                <p className="title text-[clamp(1.35rem,2.1vw,1.9rem)] !leading-[1.4] text-ink/60">
-                  We offer a wide variety of trainings. Our trainings are{' '}
-                  <b className="text-ink">practical</b>, filled with lots of examples and tips
-                  that you can start using at work right after.
-                </p>
-                <p className="mt-6 max-w-xl text-[16px] leading-[1.75] text-ink/65">
-                  We also offer certification trainings in which you are certified as a functional
-                  safety practitioner once you pass our exam. Our certifications are issued by a
-                  well-renowned international certification body.
-                </p>
-              </Reveal>
-            </div>
-
-            <div className="mt-24 grid gap-x-12 gap-y-14 md:grid-cols-2">
-              {TRAINING_GROUPS.map((g, gi) => (
-                <Reveal key={g.name} delay={(gi % 2) * 100}>
-                  <div className="mb-2 flex items-center gap-4">
-                    <span className="text-sm font-bold tabular-nums text-brand">0{gi + 1}</span>
-                    <h3 className="eyebrow !text-[12px] text-ink">{g.name}</h3>
-                  </div>
-                  <ul>
-                    {g.items.map((t) => (
-                      <li
-                        key={t}
-                        className="group relative flex items-center justify-between gap-4 border-b border-ink/10 py-4 text-[17px] font-medium tracking-tight text-ink transition-all duration-300 hover:pl-3"
-                      >
-                        {t}
-                        <i className="h-2 w-2 shrink-0 rotate-45 bg-ink/15 transition-colors group-hover:bg-signal" />
-                        <span className="absolute bottom-0 left-0 h-px w-0 bg-signal transition-all duration-500 group-hover:w-full" />
-                      </li>
-                    ))}
-                  </ul>
-                </Reveal>
-              ))}
-            </div>
-
-            <div className="mt-24 grid grid-cols-2 gap-4">
-              <Photo
-                src={IMG.whiteboard}
-                alt="Whiteboard workshop"
-                className="aspect-[4/3]"
-                speed={0.07}
-              />
-              <Photo
-                src={IMG.meeting}
-                alt="Team in a conference room presentation"
-                className="aspect-[4/3]"
-                speed={0.07}
-                delay={200}
-              />
-            </div>
-          </div>
-        </section>
+        <TrainingsSection />
       </main>
       <Footer />
     </div>

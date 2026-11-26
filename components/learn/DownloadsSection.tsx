@@ -79,9 +79,6 @@ function DownloadCard({ item, i }: { item: LearnResource; i: number }) {
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-[1600ms] group-hover:scale-110"
           />
-          <span className="absolute left-4 top-4 rounded-full bg-signal px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-ink">
-            PDF · {item.fileSize}
-          </span>
         </div>
         <div className="flex flex-1 flex-col p-7">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
