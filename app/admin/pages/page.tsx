@@ -111,13 +111,16 @@ const PAGES: PageItem[] = [
     actionLabel: 'Manage Articles',
   },
   {
-    name: 'Careers & Openings',
+    name: 'Careers & Resume Intake',
     route: '/careers',
     file: 'app/careers/page.tsx',
     description:
-      'Engineering career opportunities, culture overview, and functional safety / cybersecurity hiring tracks.',
-    status: 'Live',
-    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      'Engineering career opportunities, culture overview, and resume submission intake stored in Neon Postgres.',
+    status: 'Database Connected',
+    badgeColor: 'bg-blue-50 text-deep border-blue-200',
+    connectedData: 'career_applications table',
+    actionHref: '/admin/careers',
+    actionLabel: 'View Resumes',
   },
   {
     name: 'Frequently Asked Questions',

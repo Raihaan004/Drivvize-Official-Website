@@ -155,3 +155,88 @@ export async function sendResourcePdfEmail({
     return { success: false, error: errorMsg };
   }
 }
+
+export async function sendCareerResumeNotificationEmail({
+  name,
+  phone,
+  email,
+  area,
+  yearsExperience,
+  fileName,
+  mimeType,
+  fileBuffer,
+}: {
+  name: string;
+  phone: string;
+  email: string;
+  area: string;
+  yearsExperience: string | null;
+  fileName: string;
+  mimeType: string;
+  fileBuffer: Buffer;
+}): Promise<{ success: boolean; error?: string }> {
+  const transporter = getTransporter();
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const receiverEmail =
+    process.env.CAREERS_RECEIVER_EMAIL?.trim() ||
+    process.env.CONTACT_RECEIVER_EMAIL?.trim() ||
+    smtpUser;
+
+  if (!transporter || !smtpUser || !receiverEmail) {
+    return { success: false, error: 'SMTP credentials not configured.' };
+  }
+
+  const subject = `New Career Resume: ${name} (${area}) — Drivvize`;
+  const textBody = [
+    'New Career Resume Submission',
+    '----------------------------',
+    `Name:       ${name}`,
+    `Phone:      ${phone}`,
+    `Email:      ${email}`,
+    `Area:       ${area}`,
+    `Experience: ${yearsExperience ? `${yearsExperience} years` : 'Not specified'}`,
+    `Resume:     ${fileName}`,
+  ].join('\n');
+
+  const htmlBody = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #202B36; max-width: 600px; margin: 0 auto; border: 1px solid #DCE3EA; border-radius: 12px; overflow: hidden; background: #FFFFFF;">
+      <div style="background: #0A1018; color: #FFFFFF; padding: 22px 24px;">
+        <div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #FFCC00; font-weight: 700; margin-bottom: 4px;">
+          Drivvize Careers
+        </div>
+        <h2 style="margin: 0; font-size: 19px; font-weight: 700;">New Resume Submitted</h2>
+      </div>
+      <div style="padding: 22px 24px; font-size: 14px; line-height: 1.6;">
+        <p style="margin: 0 0 8px;"><strong>Candidate:</strong> ${escapeHtml(name)}</p>
+        <p style="margin: 0 0 8px;"><strong>Phone:</strong> ${escapeHtml(phone)}</p>
+        <p style="margin: 0 0 8px;"><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p style="margin: 0 0 8px;"><strong>Area of Interest:</strong> ${escapeHtml(area)}</p>
+        <p style="margin: 0 0 8px;"><strong>Experience:</strong> ${escapeHtml(yearsExperience ? `${yearsExperience} years` : 'Not specified')}</p>
+        <p style="margin: 14px 0 0; color: #475569; font-size: 13px;">The candidate's resume (${escapeHtml(fileName)}) is attached and archived in the Admin Portal.</p>
+      </div>
+    </div>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: `"Drivvize Careers" <${smtpUser}>`,
+      to: receiverEmail,
+      replyTo: email,
+      subject,
+      text: textBody,
+      html: htmlBody,
+      attachments: [
+        {
+          filename: fileName,
+          content: fileBuffer,
+          contentType: mimeType,
+        },
+      ],
+    });
+    return { success: true };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Failed to send HR email';
+    console.error('Error sending career resume notification:', errorMsg);
+    return { success: false, error: errorMsg };
+  }
+}

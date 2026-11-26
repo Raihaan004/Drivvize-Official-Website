@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
+  Briefcase,
   Calendar,
   Download,
   Mail,
@@ -18,6 +19,7 @@ interface AdminStats {
   totalRegistrations: number;
   totalInquiries: number;
   totalDownloads: number;
+  totalResumes: number;
 }
 
 interface Inquiry {
@@ -47,6 +49,7 @@ export default function AdminDashboardPage() {
     totalRegistrations: 0,
     totalInquiries: 0,
     totalDownloads: 0,
+    totalResumes: 0,
   });
   const [recentInquiries, setRecentInquiries] = useState<Inquiry[]>([]);
   const [recentDownloads, setRecentDownloads] = useState<DownloadRow[]>([]);
@@ -103,6 +106,15 @@ export default function AdminDashboardPage() {
       iconBg: 'bg-indigo-50 text-indigo-700 ring-indigo-200/60',
       linkColor: 'text-indigo-700',
     },
+    {
+      label: 'Career Resumes',
+      value: stats.totalResumes,
+      href: '/admin/careers',
+      linkText: 'Review candidate CVs',
+      Icon: Briefcase,
+      iconBg: 'bg-purple-50 text-purple-700 ring-purple-200/60',
+      linkColor: 'text-purple-700',
+    },
   ];
 
   return (
@@ -146,7 +158,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
         {metricCards.map(({ label, value, href, linkText, Icon, iconBg, linkColor }) => (
           <div
             key={label}

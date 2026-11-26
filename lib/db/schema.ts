@@ -142,3 +142,23 @@ export const blogViews = pgTable('blog_views', {
 });
 
 export type BlogView = typeof blogViews.$inferSelect;
+
+export const careerApplications = pgTable('career_applications', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  phone: varchar('phone', { length: 60 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  area: varchar('area', { length: 120 }).notNull(),
+  yearsExperience: varchar('years_experience', { length: 40 }),
+  resumeFileName: varchar('resume_file_name', { length: 255 }).notNull(),
+  resumeMimeType: varchar('resume_mime_type', { length: 160 }).notNull(),
+  resumeSizeBytes: integer('resume_size_bytes').notNull(),
+  resumeData: text('resume_data').notNull(),
+  consent: boolean('consent').default(true).notNull(),
+  status: varchar('status', { length: 40 }).default('new').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type CareerApplication = typeof careerApplications.$inferSelect;
+export type NewCareerApplication = typeof careerApplications.$inferInsert;

@@ -6,8 +6,7 @@ import Footer from '@/components/premium-home/Footer';
 import { IMG } from '@/components/premium-home/data';
 import { CountUp, Reveal } from '@/components/premium-home/hooks';
 
-const ENDPOINT = process.env.NEXT_PUBLIC_CAREERS_ENDPOINT;
-const HR_EMAIL = 'consult@drivvize.com';
+const ENDPOINT = process.env.NEXT_PUBLIC_CAREERS_ENDPOINT || '/api/careers';
 const MAX_MB = 5;
 const ACCEPT = '.pdf,.doc,.docx';
 const AREAS = [
@@ -153,43 +152,37 @@ export function CareersClient() {
       document.getElementById(first === 'file' ? 'resume' : first)?.focus();
       return;
     }
-    if (ENDPOINT) {
-      setSending(true);
-      try {
-        const fd = new FormData();
-        fd.append('name', v.name.trim());
-        fd.append('phone', v.phone.trim());
-        fd.append('email', v.email.trim());
-        fd.append('area', v.area);
-        fd.append('years', v.years);
-        fd.append('resume', file!);
-        const r = await fetch(ENDPOINT, {
-          method: 'POST',
-          body: fd,
-          headers: { Accept: 'application/json' },
-        });
-        if (!r.ok) throw new Error();
-        setDone('sent');
-      } catch {
-        setFail('We could not send your resume just now. Please try again in a moment.');
-      } finally {
-        setSending(false);
+    setSending(true);
+    try {
+      const fd = new FormData();
+      fd.append('name', v.name.trim());
+      fd.append('phone', v.phone.trim());
+      fd.append('email', v.email.trim());
+      fd.append('area', v.area);
+      fd.append('years', v.years.trim());
+      fd.append('consent', String(v.consent));
+      fd.append('resume', file!);
+      const r = await fetch(ENDPOINT, {
+        method: 'POST',
+        body: fd,
+        headers: { Accept: 'application/json' },
+      });
+      const data = await r.json().catch(() => null);
+      if (!r.ok) {
+        throw new Error(
+          data?.error || 'We could not save your resume just now. Please try again in a moment.',
+        );
       }
-      return;
+      setDone('sent');
+    } catch (err) {
+      setFail(
+        err instanceof Error
+          ? err.message
+          : 'We could not send your resume just now. Please try again in a moment.',
+      );
+    } finally {
+      setSending(false);
     }
-    const body = [
-      `Name: ${v.name.trim()}`,
-      `Phone: ${v.phone.trim()}`,
-      `Email: ${v.email.trim()}`,
-      `Area of interest: ${v.area}`,
-      ...(v.years ? [`Experience: ${v.years} years`] : []),
-      '',
-      `Resume attached: ${file!.name}`,
-    ].join('\n');
-    window.location.href = `mailto:${HR_EMAIL}?subject=${encodeURIComponent(
-      `Resume: ${v.name.trim()} (${v.area})`
-    )}&body=${encodeURIComponent(body)}`;
-    setDone('email');
   };
 
   const reset = () => {
