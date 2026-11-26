@@ -131,7 +131,7 @@ export const GROUPS = [
 ]
 
 export const RECOGNITION = [
-  { kind: 'Author', title: 'FunctionalSafetyFirst.com', note: '>400K viewers', href: 'https://www.functionalsafetyfirst.com/' },
+  { kind: 'Author', title: 'FunctionalSafetyFirst.com', note: '>560K viewers', href: 'https://www.functionalsafetyfirst.com/' },
   { kind: 'Media partner', title: 'Auto IQ Safety Conference' },
   { kind: 'Media partner', title: 'NEV Conference, Europe' },
   { kind: 'Speaker', title: 'CII Conference', note: '2024' },

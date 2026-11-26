@@ -87,7 +87,7 @@ export function KnowledgeMineSection({
           </Reveal>
           <Reveal className="lg:col-span-5 lg:text-right" delay={120}>
             <div className="title text-[clamp(4rem,8vw,7rem)] !font-extralight leading-none text-signal">
-              <CountUp to={400} suffix="K+" />
+              <CountUp to={560} suffix="K+" />
             </div>
             <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-white/50">
               viewers till now

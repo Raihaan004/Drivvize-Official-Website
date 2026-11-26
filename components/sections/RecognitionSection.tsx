@@ -97,7 +97,7 @@ export const RecognitionSection: React.FC = () => {
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[#FACC15] text-[11px] font-bold tracking-[0.06em]">
                   <Eye className="w-3.5 h-3.5" />
-                  More than 400K viewers till now.
+                  More than 560K viewers till now.
                 </span>
               </div>
 
@@ -153,7 +153,7 @@ export const RecognitionSection: React.FC = () => {
                       400K<span className="text-[#FACC15]">+</span>
                     </span>
                     <p className="text-[13px] text-[#DCE3EA] mt-1.5">
-                      More than 400K viewers till now.
+                      More than 560K viewers till now.
                     </p>
                   </div>
                   <div className="text-right">
