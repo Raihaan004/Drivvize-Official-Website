@@ -52,9 +52,16 @@ export async function POST(req: Request) {
     const isPublished = Boolean(body.isPublished);
     const customPublishedAt = parseOptionalDate(body.publishedAt);
 
-    if (!title || !content) {
+    if (!title) {
       return NextResponse.json(
-        { success: false, error: 'Title and content are required' },
+        { success: false, error: 'Title is required' },
+        { status: 400 },
+      );
+    }
+
+    if (isPublished && !content) {
+      return NextResponse.json(
+        { success: false, error: 'Content is required before publishing' },
         { status: 400 },
       );
     }

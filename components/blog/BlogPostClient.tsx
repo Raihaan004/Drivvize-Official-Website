@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
 import { Reveal } from '@/components/premium-home/hooks';
-import { formatBlogDate } from '@/lib/blogConstants';
+import { formatBlogDate, slugifyBlogTitle } from '@/lib/blogConstants';
 import type { BlogEngagementStats } from '@/lib/blogQueries';
 import type { Block } from '@/components/learn/learn-data';
 import PostCard, { type PostCardItem } from '@/components/learn/PostCard';
@@ -115,7 +115,13 @@ export function BlogPostClient({
                 className="fade-up mt-8 text-sm font-semibold text-white/60 print:mt-4 print:text-ink/70"
                 style={{ animationDelay: '0.5s' }}
               >
-                By {post.author}
+                By{' '}
+                <Link
+                  href={`/blog/author/${slugifyBlogTitle(post.author)}`}
+                  className="text-white underline decoration-signal/70 decoration-2 underline-offset-4 transition-colors hover:text-signal print:text-ink print:no-underline"
+                >
+                  {post.author}
+                </Link>
                 {formatBlogDate(post.publishedAt) ? (
                   <> &middot; {formatBlogDate(post.publishedAt)}</>
                 ) : null}

@@ -48,6 +48,12 @@ export async function PUT(
         : typeof body.bio === 'string'
         ? body.bio.trim() || null
         : existing.bio;
+    const linkedinUrl =
+      body.linkedinUrl === null
+        ? null
+        : typeof body.linkedinUrl === 'string'
+        ? body.linkedinUrl.trim() || null
+        : existing.linkedinUrl;
     const avatarColor =
       typeof body.avatarColor === 'string' && body.avatarColor.trim()
         ? body.avatarColor.trim()
@@ -61,7 +67,7 @@ export async function PUT(
 
     const [updated] = await db
       .update(blogWriters)
-      .set({ name, title, role, email, bio, avatarColor, avatarUrl })
+      .set({ name, title, role, email, bio, linkedinUrl, avatarColor, avatarUrl })
       .where(eq(blogWriters.id, writerId))
       .returning();
 

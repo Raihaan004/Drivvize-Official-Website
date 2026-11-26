@@ -8,7 +8,7 @@ function escapeHtmlText(raw: string): string {
 }
 
 export function isHtmlContent(value: string): boolean {
-  return /<(p|div|h[1-6]|ul|ol|li|blockquote|pre|code|span|strong|b|em|i|u|a|br|img|figure)\b[^>]*>/i.test(
+  return /<(p|div|h[1-6]|ul|ol|li|blockquote|pre|code|span|strong|b|em|i|u|a|br|img|figure|table)\b[^>]*>/i.test(
     value.trim(),
   );
 }
@@ -203,12 +203,19 @@ const ALLOWED_TAGS = new Set([
   'img',
   'figure',
   'figcaption',
+  'table',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'th',
+  'td',
 ]);
 
 function isSafeImageSrc(src: string): boolean {
   const trimmed = src.trim();
   if (/^(https?:\/\/|\/)/i.test(trimmed)) return true;
-  if (/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(trimmed)) return true;
+  if (/^data:image\/(png|jpe?g|webp|gif|avif);base64,[a-z0-9+/=]+$/i.test(trimmed)) return true;
   return false;
 }
 
@@ -271,6 +278,19 @@ export function sanitizeBlogHtml(html: string): string {
           imgAttrs.push(`style="${escapeHtmlText(safeStyle)}"`);
         }
         return `<img ${imgAttrs.join(' ')} />`;
+      }
+
+      if (tag === 'th' || tag === 'td') {
+        const colspanMatch = rawAttrs.match(/\bcolspan\s*=\s*(?:"(\d+)"|'(\d+)'|(\d+))/i);
+        const rowspanMatch = rawAttrs.match(/\browspan\s*=\s*(?:"(\d+)"|'(\d+)'|(\d+))/i);
+        const colspan = colspanMatch?.[1] ?? colspanMatch?.[2] ?? colspanMatch?.[3];
+        const rowspan = rowspanMatch?.[1] ?? rowspanMatch?.[2] ?? rowspanMatch?.[3];
+        if (colspan && Number(colspan) > 1 && Number(colspan) <= 20) {
+          attrs.push(`colspan="${colspan}"`);
+        }
+        if (rowspan && Number(rowspan) > 1 && Number(rowspan) <= 20) {
+          attrs.push(`rowspan="${rowspan}"`);
+        }
       }
 
       if (tag === 'font') {

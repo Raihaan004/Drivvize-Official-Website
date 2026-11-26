@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  BLOG_AUTHORS,
   BLOG_CATEGORIES,
   BLOG_THUMBNAIL_PRESETS,
   estimateReadTime,
@@ -60,47 +59,45 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
   const [customCategory, setCustomCategory] = useState(
     isKnownInitialCategory ? '' : initialCategory,
   );
-  const [author, setAuthor] = useState(initialData?.author || 'Drivvize Engineering');
+  const [author, setAuthor] = useState(initialData?.author || '');
   const [writers, setWriters] = useState<
-    Array<{ id: string; name: string; title?: string; role?: string }>
+    Array<{ id: string | number; name: string; title?: string; role?: string }>
   >([]);
-  const [useCustomAuthor, setUseCustomAuthor] = useState(false);
+  const [writersLoaded, setWritersLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
     fetch('/api/admin/writers')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (active && data?.success && Array.isArray(data.writers)) {
+        if (!active) return;
+        if (data?.success && Array.isArray(data.writers)) {
           setWriters(data.writers);
+          if (mode === 'create' && data.writers.length > 0) {
+            setAuthor((current) => {
+              const exists = data.writers.some(
+                (w: { name: string }) =>
+                  w.name.trim().toLowerCase() === current.trim().toLowerCase(),
+              );
+              return exists ? current : data.writers[0].name;
+            });
+          }
         }
       })
       .catch(() => {
-        // Fallback to BLOG_AUTHORS presets if fetch fails
+        // Keep current state if writers fetch fails
+      })
+      .finally(() => {
+        if (active) setWritersLoaded(true);
       });
     return () => {
       active = false;
     };
-  }, []);
+  }, [mode]);
 
-  const availableWriters = useMemo(() => {
-    if (writers.length > 0) return writers;
-    return BLOG_AUTHORS.map((name, idx) => ({
-      id: `preset-${idx}`,
-      name,
-      title: '',
-      role: '',
-    }));
-  }, [writers]);
-
-  const matchedWriter = availableWriters.find(
+  const matchedWriter = writers.find(
     (w) => w.name.trim().toLowerCase() === author.trim().toLowerCase(),
   );
-  const writerSelectValue = useCustomAuthor
-    ? '__custom__'
-    : matchedWriter
-      ? matchedWriter.name
-      : '__custom__';
   const [readTime, setReadTime] = useState(initialData?.readTime || '5 min read');
   const [readTimeManuallyEdited, setReadTimeManuallyEdited] = useState(mode === 'edit');
   const [publishedDate, setPublishedDate] = useState(
@@ -182,11 +179,22 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveArticle = async (publishTarget: boolean) => {
     const plainContent = content.replace(/<[^>]+>/g, '').replace(/&nbsp;/gi, ' ').trim();
-    if (!title.trim() || !plainContent) {
-      setError('Title and Article Content are required.');
+    const hasRichMedia = /<(img|table)\b/i.test(content);
+
+    if (!title.trim()) {
+      setError('Article Title is required.');
+      return;
+    }
+
+    if (publishTarget && !plainContent && !hasRichMedia) {
+      setError('Article Content is required before publishing.');
+      return;
+    }
+
+    if (publishTarget && !author.trim()) {
+      setError('Please select a writer from the Writers page before publishing.');
       return;
     }
 
@@ -199,12 +207,13 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
     setIsSaving(true);
     setError(null);
     setSaveSuccess(null);
+    setIsPublished(publishTarget);
 
     const payload = {
       title: title.trim(),
       slug: finalSlug,
       category: effectiveCategory,
-      author: author.trim() || 'Drivvize Engineering',
+      author: author.trim() || writers[0]?.name || 'Drivvize Engineering',
       readTime: readTime.trim() || autoEstimatedReadTime,
       coverImage: coverImage.trim() || null,
       excerpt: excerpt.trim() || title.trim().slice(0, 160),
@@ -212,8 +221,8 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
       documentName: documentUrl.trim() ? documentName.trim() || 'Attachment.pdf' : null,
       documentSize: documentUrl.trim() ? documentSize.trim() || null : null,
       documentUrl: documentUrl.trim() || null,
-      isPublished,
-      publishedAt: isPublished && publishedDate ? `${publishedDate}T12:00:00.000Z` : null,
+      isPublished: publishTarget,
+      publishedAt: publishTarget && publishedDate ? `${publishedDate}T12:00:00.000Z` : null,
     };
 
     try {
@@ -230,7 +239,7 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
       const data = (await res.json()) as {
         success?: boolean;
         error?: string;
-        blog?: { slug: string };
+        blog?: { id?: number; slug: string };
       };
 
       if (!res.ok || !data.success) {
@@ -238,11 +247,20 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
       }
 
       if (mode === 'create') {
-        router.push('/admin/blogs');
-        router.refresh();
+        if (!publishTarget && data.blog?.id) {
+          router.push(`/admin/blogs/${data.blog.id}`);
+          router.refresh();
+        } else {
+          router.push('/admin/blogs');
+          router.refresh();
+        }
       } else {
         setSlug(data.blog?.slug || finalSlug);
-        setSaveSuccess('Article updated and synced to the public blog.');
+        setSaveSuccess(
+          publishTarget
+            ? 'Article published and synced to the public blog.'
+            : 'Draft saved (hidden from the public blog).',
+        );
         router.refresh();
         setTimeout(() => setSaveSuccess(null), 4500);
       }
@@ -251,6 +269,11 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await saveArticle(isPublished);
   };
 
   const handleDelete = async () => {
@@ -358,17 +381,24 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
 
           <button
             type="button"
-            onClick={handleSubmit}
+            onClick={() => void saveArticle(false)}
+            disabled={isSaving}
+            className="cursor-pointer rounded-full border border-line bg-white px-5 py-2.5 text-xs font-bold text-ink shadow-xs transition-colors hover:bg-paper disabled:opacity-50"
+          >
+            {isSaving ? 'Saving...' : 'Save Draft'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void saveArticle(true)}
             disabled={isSaving}
             className="cursor-pointer rounded-full bg-signal px-6 py-2.5 text-xs font-bold text-ink shadow-xs transition-colors hover:bg-yellow-400 disabled:opacity-50"
           >
             {isSaving
               ? 'Saving...'
-              : mode === 'create'
-              ? isPublished
-                ? 'Publish Article'
-                : 'Save as Draft'
-              : 'Save Changes'}
+              : mode === 'edit' && isPublished
+              ? 'Update Published'
+              : 'Publish Article'}
           </button>
         </div>
       </div>
@@ -470,60 +500,68 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
                 Manage Writers &rarr;
               </Link>
             </div>
-            <select
-              value={writerSelectValue}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === '__custom__') {
-                  setUseCustomAuthor(true);
-                } else {
-                  setUseCustomAuthor(false);
-                  setAuthor(val);
-                }
-              }}
-              className="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:outline-none"
-            >
-              {availableWriters.map((writer) => (
-                <option key={writer.id} value={writer.name}>
-                  {writer.name}
-                  {writer.title ? ` — ${writer.title}` : ''}
-                </option>
-              ))}
-              <option value="__custom__">+ Custom author name...</option>
-            </select>
-            {writerSelectValue === '__custom__' && (
-              <input
-                type="text"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder="Enter custom author name"
-                className="mt-2.5 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:outline-none"
-              />
+            {writersLoaded && writers.length === 0 ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                <p className="font-semibold">No writers found.</p>
+                <Link
+                  href="/admin/blogs/writers"
+                  className="mt-1 inline-block font-bold text-deep underline"
+                >
+                  Create a writer on the Writers page &rarr;
+                </Link>
+              </div>
+            ) : (
+              <>
+                <select
+                  value={matchedWriter ? matchedWriter.name : author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  disabled={!writersLoaded && writers.length === 0}
+                  className="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:outline-none disabled:opacity-60"
+                >
+                  {!writersLoaded && (
+                    <option value={author}>{author || 'Loading writers...'}</option>
+                  )}
+                  {writersLoaded && author && !matchedWriter && (
+                    <option value={author}>{author} (Existing)</option>
+                  )}
+                  {writers.map((writer) => (
+                    <option key={writer.id} value={writer.name}>
+                      {writer.name}
+                      {writer.title ? ` — ${writer.title}` : ''}
+                    </option>
+                  ))}
+                </select>
+                {writers.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {writers.slice(0, 6).map((writer) => {
+                      const selected =
+                        writer.name.trim().toLowerCase() === author.trim().toLowerCase();
+                      return (
+                        <button
+                          key={writer.id}
+                          type="button"
+                          onClick={() => setAuthor(writer.name)}
+                          className={`cursor-pointer rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                            selected
+                              ? 'bg-brand text-white'
+                              : 'bg-paper text-ink/65 hover:bg-line hover:text-ink'
+                          }`}
+                        >
+                          {writer.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {availableWriters.slice(0, 6).map((writer) => {
-                const selected =
-                  !useCustomAuthor &&
-                  writer.name.trim().toLowerCase() === author.trim().toLowerCase();
-                return (
-                  <button
-                    key={writer.id}
-                    type="button"
-                    onClick={() => {
-                      setUseCustomAuthor(false);
-                      setAuthor(writer.name);
-                    }}
-                    className={`cursor-pointer rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors ${
-                      selected
-                        ? 'bg-brand text-white'
-                        : 'bg-paper text-ink/65 hover:bg-line hover:text-ink'
-                    }`}
-                  >
-                    {writer.name}
-                  </button>
-                );
-              })}
-            </div>
+            <p className="mt-2 text-[11px] text-ink/45">
+              Need a new author?{' '}
+              <Link href="/admin/blogs/writers" className="font-semibold text-deep hover:underline">
+                Add writer in Writers page
+              </Link>
+              .
+            </p>
           </div>
 
           <div className="rounded-2xl border border-line bg-white p-5 shadow-xs">
@@ -582,7 +620,7 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
                   {isUploadingImage ? 'Optimizing...' : 'Upload Image'}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.avif"
                     onChange={handleImageFileChange}
                     className="sr-only"
                   />
@@ -803,7 +841,7 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
         </div>
 
         {/* Bottom Actions */}
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
           <Link
             href="/admin/blogs"
             className="rounded-full border border-line px-5 py-2.5 text-xs font-bold text-ink hover:bg-paper"
@@ -811,17 +849,24 @@ export function BlogEditorForm({ mode, blogId, initialData }: BlogEditorFormProp
             Cancel
           </Link>
           <button
-            type="submit"
+            type="button"
+            onClick={() => void saveArticle(false)}
+            disabled={isSaving}
+            className="cursor-pointer rounded-full border border-line bg-white px-6 py-3 text-xs font-bold text-ink shadow-xs transition-colors hover:bg-paper disabled:opacity-50"
+          >
+            {isSaving ? 'Saving...' : 'Save Draft'}
+          </button>
+          <button
+            type="button"
+            onClick={() => void saveArticle(true)}
             disabled={isSaving}
             className="cursor-pointer rounded-full bg-signal px-7 py-3 text-xs font-bold text-ink shadow-xs hover:bg-yellow-400 disabled:opacity-50"
           >
             {isSaving
               ? 'Saving...'
-              : mode === 'create'
-              ? isPublished
-                ? 'Publish Article'
-                : 'Save Draft'
-              : 'Save Changes'}
+              : mode === 'edit' && isPublished
+              ? 'Update Published'
+              : 'Publish Article'}
           </button>
         </div>
       </form>

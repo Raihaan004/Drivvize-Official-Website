@@ -65,14 +65,20 @@ export async function PUT(
     }
 
     const body = (await req.json()) as Record<string, unknown>;
+    const nextIsPublished =
+      typeof body.isPublished === 'boolean' ? body.isPublished : existing.isPublished;
     const title =
       typeof body.title === 'string' && body.title.trim()
         ? body.title.trim()
         : existing.title;
     const content =
-      typeof body.content === 'string' && body.content.trim()
-        ? body.content.trim()
-        : existing.content;
+      typeof body.content === 'string' ? body.content.trim() : existing.content;
+    if (nextIsPublished && !content) {
+      return NextResponse.json(
+        { success: false, error: 'Article content is required before publishing' },
+        { status: 400 },
+      );
+    }
     const rawSlug = typeof body.slug === 'string' ? body.slug.trim() : existing.slug;
     const finalSlug = slugifyBlogTitle(rawSlug || title) || existing.slug;
 
@@ -120,8 +126,6 @@ export async function PUT(
         : existing.documentSize
       : null;
 
-    const nextIsPublished =
-      typeof body.isPublished === 'boolean' ? body.isPublished : existing.isPublished;
     const requestedPublishedAt = parseOptionalDate(body.publishedAt);
     const nextPublishedAt = nextIsPublished
       ? requestedPublishedAt ?? existing.publishedAt ?? new Date()

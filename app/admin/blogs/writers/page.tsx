@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown, MoreHorizontal, Plus, Users, X } from 'lucide-react';
+import { ChevronDown, ExternalLink, MoreHorizontal, Plus, Users, X } from 'lucide-react';
+import { slugifyBlogTitle } from '@/lib/blogConstants';
 
 interface WriterRow {
   id: number;
@@ -11,6 +12,7 @@ interface WriterRow {
   role: string;
   email: string | null;
   bio: string | null;
+  linkedinUrl: string | null;
   avatarColor: string;
   avatarUrl: string | null;
   postCount: number;
@@ -41,6 +43,7 @@ export default function AdminBlogWritersPage() {
   const [title, setTitle] = useState('Functional Safety Consultant');
   const [role, setRole] = useState<string>('Managed Writer');
   const [email, setEmail] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
   const [bio, setBio] = useState('');
   const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[1]);
   const [saving, setSaving] = useState(false);
@@ -82,6 +85,7 @@ export default function AdminBlogWritersPage() {
     setTitle('Functional Safety Consultant');
     setRole('Managed Writer');
     setEmail('');
+    setLinkedinUrl('');
     setBio('');
     setAvatarColor(AVATAR_COLORS[1]);
     setError(null);
@@ -94,6 +98,7 @@ export default function AdminBlogWritersPage() {
     setTitle(writer.title);
     setRole(writer.role);
     setEmail(writer.email || '');
+    setLinkedinUrl(writer.linkedinUrl || '');
     setBio(writer.bio || '');
     setAvatarColor(writer.avatarColor || AVATAR_COLORS[1]);
     setError(null);
@@ -124,6 +129,7 @@ export default function AdminBlogWritersPage() {
           title: title.trim() || 'Functional Safety Consultant',
           role,
           email: email.trim() || null,
+          linkedinUrl: linkedinUrl.trim() || null,
           bio: bio.trim() || null,
           avatarColor,
         }),
@@ -279,47 +285,58 @@ export default function AdminBlogWritersPage() {
                     </td>
 
                     <td className="relative whitespace-nowrap px-6 py-4 text-right">
-                      {idx === 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(writer)}
-                          className="cursor-pointer rounded-full border border-slate-200 bg-white px-5 py-1.5 text-xs font-bold text-deep transition-colors hover:bg-slate-50"
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/blog/author/${slugifyBlogTitle(writer.name)}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-ink/70 transition-colors hover:bg-slate-50 hover:text-ink"
+                          title="View Public Author Profile"
                         >
-                          Edit
-                        </button>
-                      ) : (
-                        <>
+                          <span>Profile</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                        {idx === 0 ? (
                           <button
                             type="button"
-                            onClick={() =>
-                              setOpenMenuId(openMenuId === writer.id ? null : writer.id)
-                            }
-                            aria-label="Writer options"
-                            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200 text-ink/70 hover:bg-slate-100"
+                            onClick={() => openEditModal(writer)}
+                            className="cursor-pointer rounded-full border border-slate-200 bg-white px-5 py-1.5 text-xs font-bold text-deep transition-colors hover:bg-slate-50"
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            Edit
                           </button>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenMenuId(openMenuId === writer.id ? null : writer.id)
+                              }
+                              aria-label="Writer options"
+                              className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200 text-ink/70 hover:bg-slate-100"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
 
-                          {openMenuId === writer.id && (
-                            <div className="absolute right-6 top-12 z-20 w-36 rounded-2xl border border-slate-200 bg-white p-1.5 text-left shadow-xl">
-                              <button
-                                type="button"
-                                onClick={() => openEditModal(writer)}
-                                className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-slate-50"
-                              >
-                                Edit Profile
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteWriter(writer)}
-                                className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"
-                              >
-                                Delete Writer
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
+                            {openMenuId === writer.id && (
+                              <div className="absolute right-6 top-12 z-20 w-36 rounded-2xl border border-slate-200 bg-white p-1.5 text-left shadow-xl">
+                                <button
+                                  type="button"
+                                  onClick={() => openEditModal(writer)}
+                                  className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-slate-50"
+                                >
+                                  Edit Profile
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteWriter(writer)}
+                                  className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                                >
+                                  Delete Writer
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -404,17 +421,32 @@ export default function AdminBlogWritersPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink/70">
-                  Email (Optional)
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="writer@drivvize.com"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-ink focus:border-brand focus:bg-white focus:outline-none"
-                />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink/70">
+                    Email (Optional)
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="writer@drivvize.com"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-ink focus:border-brand focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-ink/70">
+                    LinkedIn URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    placeholder="https://www.linkedin.com/in/..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-ink focus:border-brand focus:bg-white focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div>

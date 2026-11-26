@@ -19,6 +19,7 @@ import {
   List,
   ListOrdered,
   Quote,
+  Table as TableIcon,
   Underline,
   Unlink,
   Upload,
@@ -40,6 +41,7 @@ type OpenMenu =
   | 'highlight'
   | 'link'
   | 'image'
+  | 'table'
   | 'align'
   | 'spacing'
   | 'info'
@@ -82,6 +84,11 @@ const LINE_HEIGHTS = [
   { label: '2.0 (Double)', value: '2.0' },
 ] as const;
 
+const TABLE_GRID_CELLS = Array.from({ length: 36 }, (_, idx) => ({
+  r: Math.floor(idx / 6) + 1,
+  c: (idx % 6) + 1,
+}));
+
 export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
@@ -108,11 +115,16 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   const [imageCaption, setImageCaption] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
   const [imageError, setImageError] = useState('');
+  const [tableRows, setTableRows] = useState(3);
+  const [tableCols, setTableCols] = useState(3);
+  const [tableHeader, setTableHeader] = useState(true);
+  const [hoverCell, setHoverCell] = useState<{ r: number; c: number } | null>(null);
+  const [inTable, setInTable] = useState(false);
   const [wordCount, setWordCount] = useState(0);
 
   const syncPlainMetrics = useCallback((el: HTMLDivElement) => {
     const text = (el.textContent || '').replace(/\u00a0/g, ' ').trim();
-    const hasMedia = Boolean(el.querySelector('img'));
+    const hasMedia = Boolean(el.querySelector('img, table'));
     setIsEmpty(text.length === 0 && !hasMedia);
     setWordCount(text ? text.split(/\s+/).length : 0);
   }, []);
@@ -162,6 +174,34 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
     }
   }, []);
 
+  const getActiveTableElements = useCallback((): {
+    cell: HTMLTableCellElement;
+    row: HTMLTableRowElement;
+    table: HTMLTableElement;
+  } | null => {
+    const el = editorRef.current;
+    if (!el) return null;
+    const range = savedRangeRef.current ?? window.getSelection()?.getRangeAt(0);
+    if (!range || !el.contains(range.commonAncestorContainer)) return null;
+
+    let node: Node | null = range.startContainer;
+    let cell: HTMLTableCellElement | null = null;
+    let row: HTMLTableRowElement | null = null;
+    let table: HTMLTableElement | null = null;
+
+    while (node && node !== el) {
+      if (node instanceof HTMLTableCellElement && !cell) cell = node;
+      if (node instanceof HTMLTableRowElement && !row) row = node;
+      if (node instanceof HTMLTableElement && !table) table = node;
+      node = node.parentNode;
+    }
+
+    if (cell && row && table) {
+      return { cell, row, table };
+    }
+    return null;
+  }, []);
+
   const refreshActiveStates = useCallback(() => {
     const el = editorRef.current;
     const sel = window.getSelection();
@@ -169,6 +209,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
     if (!el.contains(sel.anchorNode)) return;
 
     saveSelection();
+    setInTable(Boolean(getActiveTableElements()));
 
     setIsBold(document.queryCommandState('bold'));
     setIsItalic(document.queryCommandState('italic'));
@@ -189,7 +230,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
     else if (document.queryCommandState('justifyRight')) setActiveAlign('right');
     else if (document.queryCommandState('justifyFull')) setActiveAlign('justify');
     else setActiveAlign('left');
-  }, [saveSelection]);
+  }, [getActiveTableElements, saveSelection]);
 
   const emitChange = useCallback(() => {
     const el = editorRef.current;
@@ -422,8 +463,8 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   };
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
-    const files = Array.from(e.clipboardData.files || []).filter((f) =>
-      f.type.startsWith('image/'),
+    const files = Array.from(e.clipboardData.files || []).filter(
+      (f) => f.type.startsWith('image/') || /\.avif$/i.test(f.name),
     );
     if (files.length === 0) return;
     e.preventDefault();
@@ -431,8 +472,165 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
     await handleImageFileUpload(files[0]);
   };
 
+  const insertTableAtCursor = useCallback(
+    (rowsCount: number, colsCount: number, withHeader: boolean) => {
+      const el = editorRef.current;
+      if (!el) return;
+
+      const safeRows = Math.max(1, Math.min(12, rowsCount));
+      const safeCols = Math.max(1, Math.min(8, colsCount));
+
+      el.focus();
+      const sel = window.getSelection();
+      let range = savedRangeRef.current;
+      if (!range || !el.contains(range.commonAncestorContainer)) {
+        range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+      }
+
+      const table = document.createElement('table');
+      let firstCell: HTMLTableCellElement | null = null;
+
+      if (withHeader) {
+        const thead = document.createElement('thead');
+        const tr = document.createElement('tr');
+        for (let c = 0; c < safeCols; c++) {
+          const th = document.createElement('th');
+          th.textContent = `Column ${c + 1}`;
+          tr.appendChild(th);
+          if (!firstCell) firstCell = th;
+        }
+        thead.appendChild(tr);
+        table.appendChild(thead);
+      }
+
+      const tbody = document.createElement('tbody');
+      const bodyRows = withHeader ? Math.max(1, safeRows - 1) : safeRows;
+      for (let r = 0; r < bodyRows; r++) {
+        const tr = document.createElement('tr');
+        for (let c = 0; c < safeCols; c++) {
+          const td = document.createElement('td');
+          td.appendChild(document.createElement('br'));
+          tr.appendChild(td);
+          if (!firstCell) firstCell = td;
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+
+      const trailingPara = document.createElement('p');
+      trailingPara.appendChild(document.createElement('br'));
+
+      range.deleteContents();
+      range.insertNode(trailingPara);
+      range.insertNode(table);
+
+      if (firstCell) {
+        const nextRange = document.createRange();
+        nextRange.selectNodeContents(firstCell);
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(nextRange);
+        }
+        savedRangeRef.current = nextRange.cloneRange();
+      }
+
+      setOpenMenu(null);
+      setHoverCell(null);
+      refreshActiveStates();
+      emitChange();
+    },
+    [emitChange, refreshActiveStates],
+  );
+
+  const modifyActiveTable = useCallback(
+    (action: 'addRow' | 'addCol' | 'delRow' | 'delCol' | 'delTable') => {
+      const ctx = getActiveTableElements();
+      if (!ctx) return;
+      const { cell, row, table } = ctx;
+
+      if (action === 'delTable') {
+        table.remove();
+        setInTable(false);
+        setOpenMenu(null);
+        emitChange();
+        return;
+      }
+
+      if (action === 'addRow') {
+        const colCount = row.cells.length || 1;
+        const newRow = document.createElement('tr');
+        for (let i = 0; i < colCount; i++) {
+          const td = document.createElement('td');
+          td.appendChild(document.createElement('br'));
+          newRow.appendChild(td);
+        }
+        const tbody = table.tBodies[0] || table;
+        if (row.parentElement === table.tHead) {
+          tbody.insertBefore(newRow, tbody.firstChild);
+        } else {
+          row.parentElement?.insertBefore(newRow, row.nextSibling);
+        }
+      } else if (action === 'delRow') {
+        const totalRows = table.rows.length;
+        if (totalRows <= 1) {
+          table.remove();
+          setInTable(false);
+          setOpenMenu(null);
+        } else {
+          row.remove();
+        }
+      } else if (action === 'addCol') {
+        const colIndex = cell.cellIndex;
+        Array.from(table.rows).forEach((r) => {
+          const isHeaderRow = r.parentElement?.tagName === 'THEAD';
+          const newCell = document.createElement(isHeaderRow ? 'th' : 'td');
+          if (isHeaderRow) {
+            newCell.textContent = `Column ${r.cells.length + 1}`;
+          } else {
+            newCell.appendChild(document.createElement('br'));
+          }
+          const refNode = r.cells[colIndex + 1] ?? null;
+          r.insertBefore(newCell, refNode);
+        });
+      } else if (action === 'delCol') {
+        const colIndex = cell.cellIndex;
+        if ((table.rows[0]?.cells.length ?? 0) <= 1) {
+          table.remove();
+          setInTable(false);
+          setOpenMenu(null);
+        } else {
+          Array.from(table.rows).forEach((r) => {
+            if (r.cells[colIndex]) r.cells[colIndex].remove();
+          });
+        }
+      }
+
+      emitChange();
+    },
+    [emitChange, getActiveTableElements],
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Tab') {
+      const ctx = getActiveTableElements();
+      if (ctx) {
+        e.preventDefault();
+        const allCells = Array.from(ctx.table.querySelectorAll<HTMLTableCellElement>('th, td'));
+        const idx = allCells.indexOf(ctx.cell);
+        const nextCell = allCells[e.shiftKey ? idx - 1 : idx + 1];
+        if (nextCell) {
+          const sel = window.getSelection();
+          const r = document.createRange();
+          r.selectNodeContents(nextCell);
+          r.collapse(false);
+          sel?.removeAllRanges();
+          sel?.addRange(r);
+          savedRangeRef.current = r.cloneRange();
+        }
+        return;
+      }
       e.preventDefault();
       runExec(e.shiftKey ? 'outdent' : 'indent');
     }
@@ -803,7 +1001,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                   <input
                     ref={imageFileInputRef}
                     type="file"
-                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    accept="image/*,.avif"
                     onChange={(e) => handleImageFileUpload(e.target.files?.[0] ?? null)}
                     className="sr-only"
                   />
@@ -819,7 +1017,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                       {imageUploading ? 'Processing image...' : 'Choose image from computer'}
                     </span>
                     <span className="mt-0.5 text-[10px] text-ink/55">
-                      PNG, JPG, WebP — inserted at cursor
+                      PNG, JPG, WebP, AVIF — inserted at cursor
                     </span>
                   </button>
                 </div>
@@ -827,6 +1025,163 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
 
               {imageError && (
                 <p className="mt-2 text-[11px] font-semibold text-red-600">{imageError}</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 6b. Table */}
+        <div className="relative">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              saveSelection();
+              setInTable(Boolean(getActiveTableElements()));
+              setOpenMenu(openMenu === 'table' ? null : 'table');
+            }}
+            className={`${btnBase} gap-1.5 px-2.5 ${
+              openMenu === 'table' || inTable ? btnActive : ''
+            }`}
+            title="Insert or edit table"
+            aria-label="Insert or edit table"
+          >
+            <TableIcon className="h-4 w-4" />
+            <span className="hidden sm:inline text-xs font-semibold">Table</span>
+          </button>
+          {openMenu === 'table' && (
+            <div className="absolute left-0 top-full z-30 mt-1.5 w-72 rounded-xl border border-line bg-white p-3.5 shadow-xl">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
+                  Insert Table
+                </p>
+                <span className="text-[11px] font-bold tabular-nums text-deep">
+                  {hoverCell ? `${hoverCell.r} × ${hoverCell.c}` : `${tableRows} × ${tableCols}`}
+                </span>
+              </div>
+
+              {/* Interactive 6x6 Grid Picker */}
+              <div
+                className="mb-3 grid grid-cols-6 gap-1 rounded-lg border border-line bg-paper p-2"
+                onMouseLeave={() => setHoverCell(null)}
+              >
+                {TABLE_GRID_CELLS.map(({ r, c }) => {
+                  const active = hoverCell ? r <= hoverCell.r && c <= hoverCell.c : false;
+                  return (
+                    <button
+                      key={`${r}-${c}`}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onMouseEnter={() => setHoverCell({ r, c })}
+                      onClick={() => insertTableAtCursor(r, c, tableHeader)}
+                      aria-label={`Insert ${r} by ${c} table`}
+                      className={`h-5 w-full cursor-pointer rounded-xs border transition-colors ${
+                        active
+                          ? 'border-brand bg-brand/25'
+                          : 'border-line bg-white hover:border-brand/60'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Custom Dimensions + Header Toggle */}
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-bold uppercase text-ink/55">
+                    Rows
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={tableRows}
+                    onChange={(e) => setTableRows(Number(e.target.value) || 1)}
+                    className="w-full rounded-lg border border-line bg-paper px-2.5 py-1.5 text-xs font-semibold text-ink focus:border-brand focus:outline-none"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-bold uppercase text-ink/55">
+                    Columns
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={8}
+                    value={tableCols}
+                    onChange={(e) => setTableCols(Number(e.target.value) || 1)}
+                    className="w-full rounded-lg border border-line bg-paper px-2.5 py-1.5 text-xs font-semibold text-ink focus:border-brand focus:outline-none"
+                  />
+                </label>
+              </div>
+
+              <label className="mt-2.5 flex cursor-pointer items-center gap-2 text-xs font-medium text-ink/75">
+                <input
+                  type="checkbox"
+                  checked={tableHeader}
+                  onChange={(e) => setTableHeader(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded accent-deep"
+                />
+                <span>Include header row</span>
+              </label>
+
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => insertTableAtCursor(tableRows, tableCols, tableHeader)}
+                className="mt-3 w-full cursor-pointer rounded-lg bg-ink py-2 text-xs font-bold text-white transition-colors hover:bg-deep"
+              >
+                Insert {tableRows} × {tableCols} Table
+              </button>
+
+              {inTable && (
+                <div className="mt-3 border-t border-line pt-3">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-ink/55">
+                    Edit Active Table
+                  </p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => modifyActiveTable('addRow')}
+                      className="cursor-pointer rounded-md border border-line bg-paper px-2 py-1.5 text-[11px] font-semibold text-ink hover:bg-line/50"
+                    >
+                      + Row Below
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => modifyActiveTable('addCol')}
+                      className="cursor-pointer rounded-md border border-line bg-paper px-2 py-1.5 text-[11px] font-semibold text-ink hover:bg-line/50"
+                    >
+                      + Col Right
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => modifyActiveTable('delRow')}
+                      className="cursor-pointer rounded-md border border-line bg-paper px-2 py-1.5 text-[11px] font-semibold text-ink hover:bg-line/50"
+                    >
+                      Remove Row
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => modifyActiveTable('delCol')}
+                      className="cursor-pointer rounded-md border border-line bg-paper px-2 py-1.5 text-[11px] font-semibold text-ink hover:bg-line/50"
+                    >
+                      Remove Col
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => modifyActiveTable('delTable')}
+                      className="col-span-2 cursor-pointer rounded-md border border-rose-200 bg-rose-50 px-2 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-rose-100"
+                    >
+                      Delete Entire Table
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}

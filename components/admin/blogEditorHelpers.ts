@@ -48,16 +48,33 @@ export function applyMarkdownTool(
 
 export function compressImageToDataUrl(file: File, maxDimension = 1200): Promise<string> {
   return new Promise((resolve, reject) => {
-    if (!file.type.startsWith('image/')) {
-      reject(new Error('Please select a valid image file (PNG, JPG, WebP).'));
+    const isAvif =
+      file.type === 'image/avif' || /\.avif$/i.test(file.name);
+    const isImageByExt = /\.(avif|webp|png|jpe?g|gif)$/i.test(file.name);
+
+    if (!file.type.startsWith('image/') && !isImageByExt) {
+      reject(new Error('Please select a valid image file (PNG, JPG, WebP, AVIF).'));
       return;
     }
 
     const reader = new FileReader();
     reader.onerror = () => reject(new Error('Could not read the selected image file.'));
     reader.onload = () => {
+      let rawDataUrl = String(reader.result);
+      if (isAvif && rawDataUrl.startsWith('data:application/octet-stream;')) {
+        rawDataUrl = rawDataUrl.replace('data:application/octet-stream;', 'data:image/avif;');
+      }
+
+      const fallbackOrReject = () => {
+        if (file.size <= 3 * 1024 * 1024 && /^data:image\/(png|jpe?g|webp|gif|avif);base64,/i.test(rawDataUrl)) {
+          resolve(rawDataUrl);
+          return;
+        }
+        reject(new Error('Unsupported or oversized image file. Try PNG, JPG, WebP, or AVIF under 3 MB.'));
+      };
+
       const img = new Image();
-      img.onerror = () => reject(new Error('Unsupported or corrupted image file.'));
+      img.onerror = fallbackOrReject;
       img.onload = () => {
         const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
         const width = Math.max(1, Math.round(img.width * scale));
@@ -68,7 +85,7 @@ export function compressImageToDataUrl(file: File, maxDimension = 1200): Promise
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          reject(new Error('Canvas context unavailable.'));
+          fallbackOrReject();
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
@@ -80,7 +97,7 @@ export function compressImageToDataUrl(file: File, maxDimension = 1200): Promise
 
         resolve(result);
       };
-      img.src = String(reader.result);
+      img.src = rawDataUrl;
     };
     reader.readAsDataURL(file);
   });

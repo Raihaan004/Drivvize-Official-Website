@@ -60,6 +60,8 @@ export async function POST(req: Request) {
         : 'Managed Writer';
     const email = typeof body.email === 'string' ? body.email.trim() || null : null;
     const bio = typeof body.bio === 'string' ? body.bio.trim() || null : null;
+    const linkedinUrl =
+      typeof body.linkedinUrl === 'string' ? body.linkedinUrl.trim() || null : null;
     const avatarColor =
       typeof body.avatarColor === 'string' && body.avatarColor.trim()
         ? body.avatarColor.trim()
@@ -82,6 +84,7 @@ export async function POST(req: Request) {
         role,
         email,
         bio,
+        linkedinUrl,
         avatarColor,
         avatarUrl,
       })

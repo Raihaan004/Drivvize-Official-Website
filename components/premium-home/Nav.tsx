@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NAV } from './data';
 
-export default function Nav() {
+export default function Nav({ forceSolid = false }: { forceSolid?: boolean }) {
   const pathname = usePathname();
   const [solid, setSolid] = useState(false);
   const [open, setOpen] = useState(false);
@@ -68,7 +68,7 @@ export default function Nav() {
     setOpen(false);
   };
 
-  const light = !solid && !open;
+  const light = !forceSolid && !solid && !open;
   const text = light ? 'text-white/85 hover:text-white' : 'text-ink/70 hover:text-ink';
 
   return (

@@ -624,3 +624,28 @@
   line-height: 1.4;
   color: rgba(10, 16, 24, 0.55);
 }
+.article-rich-html table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.75rem 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  display: table;
+}
+.article-rich-html th,
+.article-rich-html td {
+  border: 1px solid #d5dbe3;
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+  min-width: 72px;
+}
+.article-rich-html th {
+  background: #f5f6f8;
+  font-weight: 700;
+  color: #0a1018;
+}
+.article-rich-html tbody tr:nth-child(even) td {
+  background: rgba(245, 246, 248, 0.5);
+}

@@ -111,6 +111,7 @@ export const blogWriters = pgTable('blog_writers', {
   role: varchar('role', { length: 60 }).default('Managed Writer').notNull(),
   email: varchar('email', { length: 255 }),
   bio: text('bio'),
+  linkedinUrl: text('linkedin_url'),
   avatarColor: varchar('avatar_color', { length: 30 }).default('#1d3f6e').notNull(),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
