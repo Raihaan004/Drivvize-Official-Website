@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
-import { IMG } from '@/components/premium-home/data';
 import { Reveal } from '@/components/premium-home/hooks';
 import {
   ANNEX_OPTIONS,
@@ -197,7 +196,7 @@ export const ScopeCheckerClient: React.FC = () => {
           className="relative isolate flex min-h-[68svh] items-end overflow-hidden bg-ink text-white"
         >
           <img
-            src={IMG.servers}
+            src="/images/EU_CRA_img/EU-CRA-banner.jpg"
             alt=""
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />
