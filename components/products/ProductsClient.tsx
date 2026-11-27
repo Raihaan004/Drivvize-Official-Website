@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
 import { Photo, Reveal } from '@/components/premium-home/hooks';
-import { IMG } from '@/components/premium-home/data';
 
 type Cell = boolean | string;
 const EDITIONS = ['Basic', 'Custom', 'Consultant'] as const;
@@ -23,16 +22,31 @@ const ROWS: { label: string; v: [Cell, Cell, Cell] }[] = [
 const CORE = ['Workflow', 'Templates', 'Checklists', 'Guidelines'];
 
 const CARDS = [
-  { name: 'Basic Edition', image: IMG.wheel, hours: '0', hoursLabel: 'consulting hours' },
-  { name: 'Custom Edition', image: IMG.laptop, hours: '40', hoursLabel: '1:1 consulting hours' },
-  { name: 'Consultant Edition', image: IMG.office, hours: '40', hoursLabel: 'per month (lifetime)' },
+  {
+    name: 'Basic Edition',
+    image: '/images/product_img/basic-edition.jpg',
+    hours: '0',
+    hoursLabel: 'consulting hours',
+  },
+  {
+    name: 'Custom Edition',
+    image: '/images/product_img/custom-edition.jpg',
+    hours: '40',
+    hoursLabel: '1:1 consulting hours',
+  },
+  {
+    name: 'Consultant Edition',
+    image: '/images/product_img/consultant-edition.jpg',
+    hours: '40',
+    hoursLabel: 'per month (lifetime)',
+  },
 ];
 
 const TILES = [
-  { name: 'Workflow', image: IMG.aerialRoad },
-  { name: 'Templates', image: IMG.cluster },
-  { name: 'Checklists', image: IMG.engineer },
-  { name: 'Guidelines', image: IMG.neon },
+  { name: 'Workflow', image: '/images/product_img/workflow.jpg' },
+  { name: 'Templates', image: '/images/product_img/template.jpg' },
+  { name: 'Checklists', image: '/images/product_img/checklist.jpg' },
+  { name: 'Guidelines', image: '/images/product_img/guidelines.jpg' },
 ];
 
 const Check = ({ on }: { on: boolean }) =>
@@ -66,7 +80,7 @@ export function ProductsClient() {
         {/* hero */}
         <section className="relative isolate flex min-h-[72svh] items-end overflow-hidden bg-ink text-white">
           <img
-            src={IMG.concept}
+            src="/images/product_img/product-banner.jpg"
             alt=""
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />
@@ -325,8 +339,8 @@ export function ProductsClient() {
 
             <div className="mt-24">
               <Photo
-                src={IMG.road}
-                alt="Winding road through a forest"
+                src="/images/product_img/product-last-banner.jpg"
+                alt="Drivvize ISO 26262 Kit engineering visual"
                 className="aspect-[21/8]"
                 speed={0.07}
               />
