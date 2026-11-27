@@ -75,9 +75,9 @@ export const NAV: NavItem[] = [
 ]
 
 export const HERO_SLIDES = [
-  { src: IMG.concept, pos: '50% 50%' },
-  { src: IMG.freeway, pos: '50% 50%' },
-  { src: IMG.headlight, pos: '50% 50%' },
+  { src: '/images/home_img/hero_img1.jpg', pos: '50% 50%' },
+  { src: '/images/home_img/hero_img2.jpg', pos: '50% 50%' },
+  { src: '/images/home_img/hero_img3.jpg', pos: '50% 50%' },
 ]
 
 export const BAND = [IMG.porsche, IMG.plug, IMG.clusterBw, IMG.garage, IMG.speedo, IMG.cityEv]
