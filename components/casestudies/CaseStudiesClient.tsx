@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
 import { Photo, Reveal } from '@/components/premium-home/hooks';
-import { IMG } from '@/components/premium-home/data';
 
 type Case = {
   id: string;
@@ -28,7 +27,7 @@ const CASES: Case[] = [
     tag: 'Technical Safety Concept',
     title: 'Technical Safety concept for an ASIL-B Electronic park brake System',
     client: 'Indian Tier-1',
-    image: IMG.brake,
+    image: '/images/case_studies_img/cs-1.jpg',
     stats: [
       { v: 'ASIL-B', l: 'Safety level' },
       { v: '2 Tier-1s', l: 'Jointly developed' },
@@ -57,7 +56,7 @@ const CASES: Case[] = [
     tag: 'Feasibility Study',
     title: 'Feasibility Study for achieving ASIL-D for a Steer-by-wire System',
     client: 'European Tier-1',
-    image: IMG.wheel,
+    image: '/images/case_studies_img/cs-2.jpg',
     stats: [
       { v: 'ASIL-D', l: 'Highest ASIL level' },
       { v: '2 months', l: 'Time span' },
@@ -83,7 +82,7 @@ const CASES: Case[] = [
     tag: 'SW Assessment',
     title: 'SW Assessment for ASIL D AUTOSAR Platform',
     client: 'Indian Tier-2',
-    image: IMG.code,
+    image: '/images/case_studies_img/cs-3.jpg',
     stats: [
       { v: '200+', l: 'SW Safety work products' },
       { v: '50+', l: 'Gaps found in the first 3 days' },
@@ -112,7 +111,7 @@ const CASES: Case[] = [
     tag: 'Technical Safety Concept',
     title: 'Technical Safety Concept for a L2+ ADAS System',
     client: 'American OEM',
-    image: IMG.headlight,
+    image: '/images/case_studies_img/cs-4.jpg',
     stats: [
       { v: '25+', l: 'ADAS features' },
       { v: '>64', l: 'Safety Goals' },
@@ -141,8 +140,7 @@ const CASES: Case[] = [
     tag: 'Complete Solution · Ongoing',
     title: 'Complete Functional Safety Solution for an OEM (Ongoing)',
     client: 'OEM',
-    image: IMG.train,
-    position: '50% 60%',
+    image: '/images/case_studies_img/cs-5.jpg',
     stats: [
       { v: 'ISO 26262', l: 'Combined with EN 50128/9' },
       { v: 'ASIL-D', l: 'Compliance target' },
@@ -202,7 +200,7 @@ export function CaseStudiesClient() {
         {/* hero */}
         <section className="relative isolate flex min-h-[72svh] items-end overflow-hidden bg-ink text-white">
           <img
-            src={IMG.aerialRoad}
+            src="/images/case_studies_img/case-banner.jpg"
             alt=""
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />
