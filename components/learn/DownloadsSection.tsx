@@ -2,13 +2,12 @@
 
 import React, { useState } from 'react';
 import { Reveal } from '@/components/premium-home/hooks';
-import { IMG } from '@/components/premium-home/data';
 import { LEARN_RESOURCES, type LearnResource } from '@/constants/learnResources';
 
 const RESOURCE_IMAGES: Record<string, string> = {
-  'iso-26262-seooc': IMG.cluster,
-  'v2x-whitepaper': IMG.aerialRoad,
-  'eu-cra-intro': IMG.padlock,
+  'iso-26262-seooc': '/images/learn_img/download_img/training.jpg',
+  'v2x-whitepaper': '/images/learn_img/download_img/vehicle-to-everything.jpg',
+  'eu-cra-intro': '/images/learn_img/download_img/cyber-act.jpg',
 };
 
 const Arrow = ({ className = '' }: { className?: string }) => (
@@ -24,7 +23,7 @@ function DownloadCard({ item, i }: { item: LearnResource; i: number }) {
   const [submitting, setSubmitting] = useState(false);
   const [sentMessage, setSentMessage] = useState<string | null>(null);
 
-  const image = RESOURCE_IMAGES[item.id] ?? IMG.laptop;
+  const image = RESOURCE_IMAGES[item.id] ?? '/images/learn_img/download_img/training.jpg';
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

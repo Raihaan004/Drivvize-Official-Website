@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
-import { IMG } from '@/components/premium-home/data';
 import { Reveal } from '@/components/premium-home/hooks';
 import {
   VIDEOS,
@@ -74,7 +73,7 @@ export function LearnClient({
         {/* hero */}
         <section className="relative isolate flex min-h-[72svh] items-end overflow-hidden bg-ink text-white">
           <img
-            src={IMG.office}
+            src="/images/learn_img/learn-banner.jpg"
             alt=""
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />
