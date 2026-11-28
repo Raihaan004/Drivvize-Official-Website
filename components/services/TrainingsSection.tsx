@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Photo, Reveal } from '@/components/premium-home/hooks';
-import { IMG } from '@/components/premium-home/data';
 import {
   TRAINING_CATEGORIES,
   TRAINING_OFFERINGS,
@@ -34,7 +33,7 @@ export function TrainingsSection() {
 
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-20">
           <Photo
-            src={IMG.presenting}
+            src="/images/services_img/trainings/Train-img1.jpg"
             alt="Trainer presenting to a group"
             className="aspect-[4/3] lg:col-span-6"
             speed={0.06}
@@ -214,13 +213,13 @@ export function TrainingsSection() {
 
         <div className="mt-24 grid grid-cols-2 gap-4">
           <Photo
-            src={IMG.whiteboard}
+            src="/images/services_img/trainings/Train-img2.jpg"
             alt="Whiteboard workshop"
             className="aspect-[4/3]"
             speed={0.07}
           />
           <Photo
-            src={IMG.meeting}
+            src="/images/services_img/trainings/Train-img3.jpg"
             alt="Team in a conference room presentation"
             className="aspect-[4/3]"
             speed={0.07}
