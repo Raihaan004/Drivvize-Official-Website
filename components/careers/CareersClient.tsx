@@ -3,7 +3,6 @@
 import React, { useRef, useState, type ReactNode } from 'react';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
-import { IMG } from '@/components/premium-home/data';
 import { CountUp, Reveal } from '@/components/premium-home/hooks';
 
 const ENDPOINT = process.env.NEXT_PUBLIC_CAREERS_ENDPOINT || '/api/careers';
@@ -202,7 +201,7 @@ export function CareersClient() {
         {/* hero */}
         <section className="relative isolate flex min-h-[72svh] items-end overflow-hidden bg-ink text-white">
           <img
-            src={IMG.office}
+            src="/images/career_img/career-banner.jpg"
             alt=""
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />
@@ -327,7 +326,7 @@ export function CareersClient() {
                 <Reveal className="mt-14">
                   <div className="aspect-[3/4] overflow-hidden bg-deep">
                     <img
-                      src={IMG.whiteboard}
+                      src="/images/career_img/career-img1.jpg"
                       alt="Team working at a whiteboard"
                       loading="lazy"
                       className="h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
@@ -337,7 +336,7 @@ export function CareersClient() {
                 <Reveal delay={150}>
                   <div className="aspect-[3/4] overflow-hidden bg-deep">
                     <img
-                      src={IMG.laptop}
+                      src="/images/career_img/career-img2.jpg"
                       alt="Engineer at a laptop"
                       loading="lazy"
                       className="h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"

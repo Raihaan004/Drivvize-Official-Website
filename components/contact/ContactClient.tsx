@@ -4,7 +4,6 @@ import React, { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
-import { IMG } from '@/components/premium-home/data';
 import { Photo, Reveal } from '@/components/premium-home/hooks';
 
 const EMAIL = 'consult@drivvize.com';
@@ -213,7 +212,7 @@ export function ContactClient() {
         {/* hero */}
         <section className="relative isolate flex min-h-[58svh] items-end overflow-hidden bg-ink text-white">
           <img
-            src={IMG.road}
+            src="/images/contact_img/contact-banner.jpg"
             alt=""
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />
@@ -280,7 +279,7 @@ export function ContactClient() {
                 </Link>
 
                 <Photo
-                  src={IMG.engineer}
+                  src="/images/contact_img/contact.jpg"
                   alt="Engineer working at a laptop"
                   className="mt-10 aspect-[4/3] w-full lg:mt-auto"
                   speed={0.05}

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FOUNDERS, IMG, NAV } from './data';
+import { FOUNDERS, NAV } from './data';
 import { Photo } from './hooks';
 
 export default function Footer() {
@@ -21,7 +21,7 @@ export default function Footer() {
 
   return (
     <footer id="contact" className="relative isolate overflow-hidden bg-ink text-white">
-      <Photo src={IMG.road} alt="" className="!absolute inset-0 -z-20 !bg-ink" speed={0.05} />
+      <Photo src="/images/footer_img/footer-img.jpg" alt="" className="!absolute inset-0 -z-20 !bg-ink" speed={0.05} />
       <div className="absolute inset-0 -z-10 bg-ink/75" />
       <div className="mx-auto max-w-[1320px] px-5 sm:px-6 pb-8 sm:pb-10 pt-16 sm:pt-28 lg:px-10 lg:pt-44">
         <p className="eyebrow mb-4 sm:mb-8 text-signal">Let&rsquo;s talk</p>

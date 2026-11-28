@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Search, X } from 'lucide-react';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
-import { IMG } from '@/components/premium-home/data';
 import { Reveal } from '@/components/premium-home/hooks';
 import {
   FAQ_CATEGORIES,
@@ -233,7 +232,7 @@ export function FaqsClient() {
         {/* Hero */}
         <section className="relative isolate flex min-h-[62svh] items-end overflow-hidden bg-ink text-white">
           <img
-            src={IMG.meeting}
+            src="/images/learn_img/faq_img/faq-banner.jpg"
             alt=""
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />

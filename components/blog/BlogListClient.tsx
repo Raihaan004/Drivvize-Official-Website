@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from 'react';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
-import { IMG } from '@/components/premium-home/data';
 import { Reveal } from '@/components/premium-home/hooks';
 import {
   BLOG_CATEGORIES,
@@ -60,7 +59,7 @@ export function BlogListClient({ initialBlogs = [] }: { initialBlogs?: DbBlogRow
         {/* hero */}
         <section className="relative isolate flex min-h-[58svh] items-end overflow-hidden bg-ink text-white">
           <img
-            src={IMG.engineer}
+            src="/images/learn_img/blog_img/blog-banner.jpg"
             alt="Automotive safety engineering desk"
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />

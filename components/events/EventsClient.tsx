@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Nav from '@/components/premium-home/Nav';
 import Footer from '@/components/premium-home/Footer';
-import { IMG } from '@/components/premium-home/data';
 import { Reveal } from '@/components/premium-home/hooks';
 import type { PublicPastEvent, PublicUpcomingEvent } from '@/lib/eventQueries';
 import {
@@ -598,7 +597,7 @@ export function EventsClient({
       <main id="main-content">
         <section className="relative isolate flex min-h-[58svh] items-end overflow-hidden bg-ink text-white">
           <img
-            src={IMG.stage}
+            src="/images/learn_img/events_img/event-banner.jpg"
             alt="Drivvize engineering events and conferences"
             className="kenburns absolute inset-0 -z-20 h-full w-full object-cover"
           />
