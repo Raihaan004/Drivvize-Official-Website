@@ -8,11 +8,32 @@ export const contactSubmissions = pgTable('contact_submissions', {
   phone: varchar('phone', { length: 50 }).notNull(),
   companyName: varchar('company_name', { length: 255 }),
   message: text('message').notNull(),
+  status: varchar('status', { length: 30 }).default('new').notNull(),
+  isStarred: boolean('is_starred').default(false).notNull(),
+  isFlagged: boolean('is_flagged').default(false).notNull(),
+  assignedTo: varchar('assigned_to', { length: 120 }).default('Drivvize Team').notNull(),
+  source: varchar('source', { length: 40 }).default('Automated form').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 export type NewContactSubmission = typeof contactSubmissions.$inferInsert;
+
+export const contactReplies = pgTable('contact_replies', {
+  id: serial('id').primaryKey(),
+  inquiryId: integer('inquiry_id').notNull(),
+  senderName: varchar('sender_name', { length: 160 }).default('Drivvize Team').notNull(),
+  senderEmail: varchar('sender_email', { length: 255 }).notNull(),
+  recipientEmail: varchar('recipient_email', { length: 255 }).notNull(),
+  subject: varchar('subject', { length: 255 }).notNull(),
+  message: text('message').notNull(),
+  sentViaEmail: boolean('sent_via_email').default(true).notNull(),
+  emailError: text('email_error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type ContactReply = typeof contactReplies.$inferSelect;
+export type NewContactReply = typeof contactReplies.$inferInsert;
 
 export const pdfDownloads = pgTable('pdf_downloads', {
   id: serial('id').primaryKey(),

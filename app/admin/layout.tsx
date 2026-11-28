@@ -11,6 +11,7 @@ import {
   Download,
   ExternalLink,
   FileText,
+  Inbox,
   LayoutDashboard,
   LogOut,
   Mail,
@@ -51,8 +52,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     group: 'Leads & Site',
     items: [
+      { label: 'Contact Overview', href: '/admin/inquiries', Icon: Mail },
+      { label: 'Contact Inbox', href: '/admin/inquiries/inbox', Icon: Inbox },
       { label: 'Career Resumes', href: '/admin/careers', Icon: Briefcase },
-      { label: 'Contact Inquiries', href: '/admin/inquiries', Icon: Mail },
       { label: 'PDF Downloads', href: '/admin/downloads', Icon: Download },
       { label: 'Pages Overview', href: '/admin/pages', Icon: FileText },
     ],
@@ -71,7 +73,8 @@ function resolvePageTitle(pathname: string): string {
   if (pathname.startsWith('/admin/events/')) return 'Edit Event';
   if (pathname === '/admin/events') return 'Events Manager';
   if (pathname === '/admin/careers') return 'Career Resumes';
-  if (pathname === '/admin/inquiries') return 'Contact Inquiries';
+  if (pathname === '/admin/inquiries/inbox') return 'Contact Inbox';
+  if (pathname === '/admin/inquiries') return 'Contact Overview';
   if (pathname === '/admin/downloads') return 'PDF Downloads';
   if (pathname === '/admin/pages') return 'Pages Overview';
   return 'Admin Console';

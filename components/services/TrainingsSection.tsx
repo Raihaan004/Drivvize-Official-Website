@@ -11,7 +11,7 @@ import {
 
 export function TrainingsSection() {
   const [selectedCategory, setSelectedCategory] = useState<TrainingCategory>('All');
-  const [openId, setOpenId] = useState<string | null>(TRAINING_OFFERINGS[0].id);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const visibleOfferings = TRAINING_OFFERINGS.filter(
     (item) => selectedCategory === 'All' || item.category === selectedCategory,
@@ -74,10 +74,7 @@ export function TrainingsSection() {
                   aria-selected={selectedCategory === category}
                   onClick={() => {
                     setSelectedCategory(category);
-                    const firstMatch = TRAINING_OFFERINGS.find(
-                      (item) => category === 'All' || item.category === category,
-                    );
-                    setOpenId(firstMatch?.id ?? null);
+                    setOpenId(null);
                   }}
                   className={`cursor-pointer rounded-full px-4 py-2 text-[12px] font-bold transition-colors ${
                     selectedCategory === category

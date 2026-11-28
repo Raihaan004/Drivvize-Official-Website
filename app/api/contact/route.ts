@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { db } from '@/lib/db';
 import { contactSubmissions } from '@/lib/db/schema';
+import { sendContactNotificationEmail } from '@/lib/mailer';
 import { desc } from 'drizzle-orm';
 
 interface ContactPayload {
@@ -11,15 +11,6 @@ interface ContactPayload {
   phone?: unknown;
   companyName?: unknown;
   message?: unknown;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 function isValidEmail(email: string): boolean {
@@ -114,6 +105,8 @@ export async function POST(request: Request) {
         phone,
         companyName: companyName || null,
         message,
+        status: 'new',
+        source: 'Automated form',
       })
       .returning({ id: contactSubmissions.id });
     insertedId = inserted?.id ?? null;
@@ -121,98 +114,18 @@ export async function POST(request: Request) {
     console.error('Failed to persist contact inquiry into Neon Postgres:', dbErr);
   }
 
-  // 2. Attempt optional SMTP delivery if credentials are provided
-  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const smtpPort = Number(process.env.SMTP_PORT || '465');
-  const smtpSecure =
-    process.env.SMTP_SECURE !== undefined
-      ? process.env.SMTP_SECURE === 'true'
-      : smtpPort === 465;
-  const smtpUser = process.env.SMTP_USER?.trim();
-  const smtpPass = process.env.SMTP_PASS?.trim();
-  const receiverEmail =
-    process.env.CONTACT_RECEIVER_EMAIL?.trim() || smtpUser;
-  const webhookUrl = process.env.CONTACT_WEBHOOK_URL?.trim();
-
-  if (smtpUser && smtpPass && receiverEmail) {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpSecure,
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-      });
-
-      const fullName = `${firstName} ${lastName}`;
-      const subject = `New Contact Inquiry from ${fullName} — Drivvize`;
-
-      const textBody = [
-        'New Contact Us Submission (Drivvize Website)',
-        '-------------------------------------------',
-        `First Name:   ${firstName}`,
-        `Last Name:    ${lastName}`,
-        `Gmail ID:     ${email}`,
-        `Phone No.:    ${phone}`,
-        `Company Name: ${companyName || 'Not provided'}`,
-        '',
-        'Message:',
-        message,
-      ].join('\n');
-
-      const htmlBody = `
-        <div style="font-family: Arial, sans-serif; color: #202B36; max-width: 640px; margin: 0 auto; border: 1px solid #DCE3EA; border-radius: 12px; overflow: hidden;">
-          <div style="background: #0B2545; color: #FFFFFF; padding: 20px 24px;">
-            <div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #06B6D4; font-weight: 700;">Drivvize Website Inquiry</div>
-            <h2 style="margin: 6px 0 0; font-size: 20px;">New Contact Us Submission</h2>
-          </div>
-          <div style="padding: 24px; background: #FFFFFF;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-              <tr>
-                <td style="padding: 8px 0; color: #315B7D; font-weight: 600; width: 140px;">First Name</td>
-                <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(firstName)}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Last Name</td>
-                <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(lastName)}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Gmail ID</td>
-                <td style="padding: 8px 0; color: #2563EB;"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Phone No.</td>
-                <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(phone)}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Company Name</td>
-                <td style="padding: 8px 0; color: #0B2545;">${companyName ? escapeHtml(companyName) : '<span style="color:#94A3B8;">Not provided</span>'}</td>
-              </tr>
-            </table>
-            <div style="margin-top: 20px; padding: 16px; background: #F8FAFC; border: 1px solid #DCE3EA; border-radius: 8px;">
-              <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #315B7D; font-weight: 700; margin-bottom: 8px;">Message</div>
-              <div style="font-size: 14px; line-height: 1.6; color: #202B36; white-space: pre-wrap;">${escapeHtml(message)}</div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      await transporter.sendMail({
-        from: `"Drivvize Contact Form" <${smtpUser}>`,
-        to: receiverEmail,
-        replyTo: email,
-        subject,
-        text: textBody,
-        html: htmlBody,
-      });
-    } catch (mailErr) {
-      console.warn('Optional SMTP notification delivery failed:', mailErr);
-    }
-  }
+  // 2. Attempt SMTP email delivery to CONTACT_RECEIVER_EMAIL (fallback to SMTP_USER)
+  await sendContactNotificationEmail({
+    firstName,
+    lastName,
+    email,
+    phone,
+    companyName,
+    message,
+  });
 
   // 3. Optional webhook notification
+  const webhookUrl = process.env.CONTACT_WEBHOOK_URL?.trim();
   if (webhookUrl) {
     fetch(webhookUrl, {
       method: 'POST',

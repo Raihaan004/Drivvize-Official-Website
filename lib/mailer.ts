@@ -240,3 +240,167 @@ export async function sendCareerResumeNotificationEmail({
     return { success: false, error: errorMsg };
   }
 }
+
+export async function sendContactNotificationEmail({
+  firstName,
+  lastName,
+  email,
+  phone,
+  companyName,
+  message,
+}: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  companyName: string;
+  message: string;
+}): Promise<{ success: boolean; receiverEmail?: string; error?: string }> {
+  const transporter = getTransporter();
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const receiverEmail =
+    process.env.CONTACT_RECEIVER_EMAIL?.trim() || smtpUser;
+
+  if (!transporter || !smtpUser || !receiverEmail) {
+    return { success: false, error: 'SMTP credentials or receiver email not configured.' };
+  }
+
+  const fullName = `${firstName} ${lastName}`.trim();
+  const subject = `New Contact Inquiry from ${fullName} — Drivvize`;
+
+  const textBody = [
+    'New Contact Us Submission (Drivvize Website)',
+    '-------------------------------------------',
+    `First Name:   ${firstName}`,
+    `Last Name:    ${lastName}`,
+    `Email ID:     ${email}`,
+    `Phone No.:    ${phone}`,
+    `Company Name: ${companyName || 'Not provided'}`,
+    '',
+    'Message:',
+    message,
+  ].join('\n');
+
+  const htmlBody = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #202B36; max-width: 640px; margin: 0 auto; border: 1px solid #DCE3EA; border-radius: 12px; overflow: hidden; background: #FFFFFF;">
+      <div style="background: #0A1018; color: #FFFFFF; padding: 20px 24px;">
+        <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #FFCC00; font-weight: 700;">Drivvize Website Inquiry</div>
+        <h2 style="margin: 6px 0 0; font-size: 20px;">New Contact Us Submission</h2>
+      </div>
+      <div style="padding: 24px; background: #FFFFFF;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 8px 0; color: #315B7D; font-weight: 600; width: 140px;">First Name</td>
+            <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(firstName)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Last Name</td>
+            <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(lastName)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Email ID</td>
+            <td style="padding: 8px 0; color: #2563EB;"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Phone No.</td>
+            <td style="padding: 8px 0; color: #0B2545;">${escapeHtml(phone)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #315B7D; font-weight: 600;">Company Name</td>
+            <td style="padding: 8px 0; color: #0B2545;">${companyName ? escapeHtml(companyName) : '<span style="color:#94A3B8;">Not provided</span>'}</td>
+          </tr>
+        </table>
+        <div style="margin-top: 20px; padding: 16px; background: #F8FAFC; border: 1px solid #DCE3EA; border-radius: 8px;">
+          <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #315B7D; font-weight: 700; margin-bottom: 8px;">Message</div>
+          <div style="font-size: 14px; line-height: 1.6; color: #202B36; white-space: pre-wrap;">${escapeHtml(message)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: `"Drivvize Contact Form" <${smtpUser}>`,
+      to: receiverEmail,
+      replyTo: email,
+      subject,
+      text: textBody,
+      html: htmlBody,
+    });
+    return { success: true, receiverEmail };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Failed to send contact email';
+    console.warn('Optional SMTP contact notification failed:', errorMsg);
+    return { success: false, receiverEmail, error: errorMsg };
+  }
+}
+
+export async function sendContactReplyEmail({
+  toEmail,
+  toName,
+  subject,
+  message,
+}: {
+  toEmail: string;
+  toName?: string;
+  subject: string;
+  message: string;
+}): Promise<{ success: boolean; senderEmail?: string; error?: string }> {
+  const transporter = getTransporter();
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const replyToEmail = process.env.CONTACT_RECEIVER_EMAIL?.trim() || smtpUser;
+
+  if (!transporter || !smtpUser) {
+    return {
+      success: false,
+      error: 'SMTP credentials (SMTP_USER / SMTP_PASS) are not configured in .env.local.',
+    };
+  }
+
+  const greeting = toName ? `Hello ${toName},` : 'Hello,';
+  const textBody = [
+    greeting,
+    '',
+    message,
+    '',
+    'Best regards,',
+    'Drivvize Team',
+    'https://www.drivvize.com',
+  ].join('\n');
+
+  const htmlBody = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #202B36; max-width: 640px; margin: 0 auto; border: 1px solid #DCE3EA; border-radius: 12px; overflow: hidden; background: #FFFFFF;">
+      <div style="background: #0A1018; color: #FFFFFF; padding: 22px 24px;">
+        <div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #FFCC00; font-weight: 700; margin-bottom: 4px;">
+          Drivvize Engineering Consultancy
+        </div>
+        <h2 style="margin: 0; font-size: 19px; font-weight: 700;">${escapeHtml(subject)}</h2>
+      </div>
+      <div style="padding: 26px 24px; font-size: 15px; line-height: 1.7; color: #1E293B;">
+        <p style="margin-top: 0;">${escapeHtml(greeting)}</p>
+        <div style="white-space: pre-wrap; margin: 16px 0;">${escapeHtml(message)}</div>
+        <div style="margin-top: 28px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 13px; color: #475569;">
+          <strong>Drivvize Team</strong><br />
+          Functional Safety &amp; Automotive Cybersecurity<br />
+          <a href="https://www.drivvize.com" style="color: #1D3F6E; text-decoration: none;">www.drivvize.com</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: `"Drivvize Team" <${smtpUser}>`,
+      to: toEmail,
+      replyTo: replyToEmail,
+      subject,
+      text: textBody,
+      html: htmlBody,
+    });
+    return { success: true, senderEmail: replyToEmail };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Failed to deliver reply email';
+    console.error('Error sending contact reply email:', errorMsg);
+    return { success: false, senderEmail: replyToEmail, error: errorMsg };
+  }
+}
